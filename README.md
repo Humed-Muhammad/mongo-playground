@@ -4,11 +4,11 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 
 ## Previews
 ### Split UI
-![PreviewOne](./p1.png)
+![PreviewOne](./p1.webp)
 ### Autocompletion and Error Messages
-![PreviewTwo](./p2.png)
+![PreviewTwo](./p2.webp)
 ### Customization
-![PreviewThree](./p3.png)
+![PreviewThree](./p3.webp)
 
 ## Features
 
