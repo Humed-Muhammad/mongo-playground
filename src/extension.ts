@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { executeAggregationQuery } from "./executeAggregationQuery";
+import { MongoClient } from "mongodb";
 
 export function activate(context: vscode.ExtensionContext) {
   let panel: vscode.WebviewPanel | undefined = undefined;
@@ -25,11 +26,47 @@ export function activate(context: vscode.ExtensionContext) {
 
       // Handle messages from the WebView
       panel.webview.onDidReceiveMessage(
-        (message) => {
+        async (message) => {
+          const aggregationQuery = message.query;
+          const url = message?.url;
+          const client = new MongoClient(url);
+          await client.connect();
+
+          const adminDb = client.db("admin");
+          const databaseList = await adminDb.admin().listDatabases();
+          const dbNamesAndCollections: Array<{ [dbName: string]: string[] }> =
+            [];
+          // const collectionNames: Array<string> = [];
+
+          // databaseList.databases.forEach((db) => {
+          //   dbNames.push(db.name);
+          // });
+
+          // Get the list of collections in each database
+          for (const db of databaseList.databases) {
+            const dbInstance = client.db(db.name);
+            const collectionList = await dbInstance.listCollections().toArray();
+            const collectionListName: Array<string> = [];
+            collectionList.forEach((collection) => {
+              collectionListName.push(collection.name);
+            });
+
+            dbNamesAndCollections.push({
+              [db.name]: collectionListName,
+            });
+          }
+          panel?.webview.postMessage({
+            command: "dbNameAndCollection",
+            dbNamesAndCollections,
+          });
+
           if (message.command === "executeQuery") {
-            const aggregationQuery = message.query;
-            const url = message?.url;
-            executeAggregationQuery(aggregationQuery, url)
+            executeAggregationQuery(
+              client,
+              aggregationQuery,
+              message.dbName,
+              message.collectionName
+            )
               .then((result) => {
                 // Send query results back to the WebView
                 panel?.webview.postMessage({
@@ -193,6 +230,32 @@ function getWebviewContent(): string {
                 <option value="vs-light">Light</option>
               </select>
             </div>
+            <div>
+            <label
+              for="dbName"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >Select Playground Theme</label
+            >
+            <select
+              id="dbName"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            >
+              
+            </select>
+          </div>
+          <div>
+            <label
+              for="collectionName"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >Select Playground Theme</label
+            >
+            <select
+              id="collectionName"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            >
+              
+            </select>
+          </div>
           </div>
           <div
             class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600"
@@ -220,6 +283,8 @@ function getWebviewContent(): string {
       let settings = {
         url: "mongodb://localhost:27017",
         theme: "vs-dark",
+        dbName: "test",
+        collectionName: "orders"
       };
       const mongodbSettings = JSON.parse(
         localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
@@ -243,6 +308,8 @@ function getWebviewContent(): string {
       const cancelButton = document.getElementById("cancel");
       const mongodbUrlInput = document.getElementById("mongodbUrl");
       const themeSelector = document.getElementById("theme");
+      const dbNameSelector = document.getElementById("dbName");
+      const collectionNameSelector = document.getElementById("collectionName");
       const applyButton = document.getElementById("apply");
 
       const updateTheme = (theme) => {
@@ -256,6 +323,8 @@ function getWebviewContent(): string {
       if (mongodbSettings) {
         mongodbUrlInput.value = mongodbSettings.url;
         themeSelector.value = mongodbSettings.theme;
+        dbNameSelector.value = mongodbSettings.dbName;
+        collectionNameSelector.value = mongodbSettings.collectionName;
         updateTheme(mongodbSettings.theme);
       }
 
@@ -275,6 +344,24 @@ function getWebviewContent(): string {
           localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
         );
         settings = { ...mongodbSettings, theme: event.target.value };
+      });
+      // For dbName and collectionName update
+      dbNameSelector.addEventListener("change", (event) => {
+        const mongodbSettings = JSON.parse(
+          localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
+        );
+        
+        settings = { ...mongodbSettings, dbName: event.target.value };
+        localStorage.setItem("mongodbSettings", JSON.stringify(settings));
+        createCollectionOptions(event.target.value)
+        collectionNameSelector.value = mongodbSettings.collectionName;
+      });
+      collectionNameSelector.addEventListener("change", (event) => {
+        const mongodbSettings = JSON.parse(
+          localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
+          );
+          settings = { ...mongodbSettings, collectionName: event.target.value };
+          localStorage.setItem("mongodbSettings", JSON.stringify(settings));
       });
 
       settingButton.addEventListener("click", () => modal.show());
@@ -435,6 +522,20 @@ function getWebviewContent(): string {
         };
       }
 
+      const createCollectionOptions = (dbName) => {
+        collectionNameSelector.length = 0;
+        const dbOptions = localStorage.getItem("dbNameAndCollection")
+        const dbNamesAndCollections = JSON.parse(dbOptions)
+        const collections = dbNamesAndCollections.filter(db => Object.keys(db)[0] === dbName)[0][dbName]
+        collections.map(col => {
+          const collectionOption = document.createElement("option");
+          collectionOption.value = col;
+          collectionOption.textContent = col;
+          collectionNameSelector.appendChild(collectionOption)
+        })
+        collectionNameSelector.value = collections[0]
+      }
+
       const vscode = acquireVsCodeApi();
       try {
         require.config({
@@ -516,6 +617,8 @@ function getWebviewContent(): string {
               command: "executeQuery",
               query,
               url: setti.url,
+              dbName: setti.dbName,
+              collectionName: setti.collectionName
             });
             modal.hide();
           });
@@ -537,6 +640,8 @@ function getWebviewContent(): string {
               command: "executeQuery",
               query,
               url: setti.url,
+              dbName: setti.dbName,
+              collectionName: setti.collectionName
             });
           });
 
@@ -544,8 +649,26 @@ function getWebviewContent(): string {
           editor.setValue("[]");
           editorTwo.setValue("[]");
           window.addEventListener("message", (event) => {
+            const setti = JSON.parse(
+              localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
+            );
             const message = event.data;
-
+            if(message.command === "dbNameAndCollection"){
+              dbNameSelector.length = 0;
+              localStorage.setItem("dbNameAndCollection", JSON.stringify(message.dbNamesAndCollections));
+              message.dbNamesAndCollections.map((database)=> {
+                const dbName = Object.keys(database)[0];
+                const dbNameOption = document.createElement("option");
+                dbNameOption.value = dbName;
+                dbNameOption.textContent = dbName;
+                dbNameSelector.appendChild(dbNameOption)
+                
+              })
+              
+              createCollectionOptions(setti.dbName)
+              dbNameSelector.value = setti.dbName;
+              collectionNameSelector.value = setti.collectionName
+            }
             if (message.command === "queryResults") {
               if (message.error) {
                 errorContainer.style.display = "flex";
@@ -553,7 +676,7 @@ function getWebviewContent(): string {
               } else {
                 errorContainer.style.display = "none";
                 errorContainer.innerText = "";
-                editorTwo.setValue(JSON.stringify(message.results));
+                editorTwo.setValue(JSON.stringify(message.results.slice(0, 20)));
               }
 
               editorTwo.getAction("editor.action.formatDocument").run();

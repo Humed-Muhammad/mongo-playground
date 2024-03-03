@@ -1,14 +1,13 @@
 import { MongoClient } from "mongodb";
 
 export async function executeAggregationQuery(
+  client: MongoClient,
   query: string,
-  url: string
+  dbName: string,
+  collectionName: string
 ): Promise<any> {
-  const client = new MongoClient(url);
-  await client.connect();
-
-  const db = client.db("test");
-  const collection = db.collection("orders");
+  const db = client.db(dbName);
+  const collection = db.collection(collectionName);
 
   try {
     const pipeline = JSON.parse(query);

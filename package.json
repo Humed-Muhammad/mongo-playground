@@ -2,7 +2,11 @@
   "name": "mongo-playground",
   "displayName": "mongo-playground",
   "description": "MongoDb Aggrigation Playground In your Vscode",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "publisher": "HumedEssie",
+  "repository": {
+    "url": "https://github.com/Humed-Muhammad/mongo-playground"
+  },
   "engines": {
     "vscode": "^1.87.0"
   },
@@ -50,5 +54,6 @@
   "icons": {
     "dark": "./icon.png",
     "light": "./icon.png"
-  }
+  },
+  "icon": "./icon.png"
 }
