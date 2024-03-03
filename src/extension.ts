@@ -279,12 +279,13 @@ function getWebviewContent(): string {
       </div>
     </div>
     <script>
-    let query = "[]"
+   
       let settings = {
         url: "mongodb://localhost:27017",
         theme: "vs-dark",
         dbName: "test",
-        collectionName: "orders"
+        collectionName: "orders",
+        query: "[]"
       };
       const mongodbSettings = JSON.parse(
         localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
@@ -335,8 +336,6 @@ function getWebviewContent(): string {
         );
         settings = { ...mongodbSettings, url: event.target.value };
         
-        
-        // localStorage.setItem("mongodbSettings", JSON.stringify(newSetting));
       });
 
       themeSelector.addEventListener("change", (event) => {
@@ -607,19 +606,20 @@ function getWebviewContent(): string {
           );
 
           applyButton.addEventListener("click", () => {
-            localStorage.setItem("mongodbSettings", JSON.stringify(settings));
             const setti = JSON.parse(
               localStorage.getItem("mongodbSettings")
             );
+            localStorage.setItem("mongodbSettings", JSON.stringify({...settings, query: setti.query}));
             monaco.editor.setTheme(settings.theme);
             updateTheme(settings.theme);
             vscode.postMessage({
               command: "executeQuery",
-              query,
+              query: setti.query,
               url: setti.url,
               dbName: setti.dbName,
               collectionName: setti.collectionName
             });
+            editorTwo.getAction("editor.action.formatDocument").run();
             modal.hide();
           });
 
@@ -634,8 +634,11 @@ function getWebviewContent(): string {
             const setti = JSON.parse(
               localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
             );
-            query = editor.getValue();
-            
+            const query = editor.getValue();
+            const newUpdatedSettingWithQuery = {...setti, query}
+
+            localStorage.setItem("mongodbSettings", JSON.stringify(newUpdatedSettingWithQuery))
+
             vscode.postMessage({
               command: "executeQuery",
               query,
@@ -646,8 +649,8 @@ function getWebviewContent(): string {
           });
 
           // Optional: Set the initial content of the editor
-          editor.setValue("[]");
-          editorTwo.setValue("[]");
+          editor.setValue(mongodbSettings.query??"[]");
+          
           window.addEventListener("message", (event) => {
             const setti = JSON.parse(
               localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
