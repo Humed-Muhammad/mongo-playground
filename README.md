@@ -2,17 +2,25 @@
 
 The Mongo Playground VSCode extension is a tool that allows you to interact with MongoDB databases directly from within Visual Studio Code. It provides a convenient platform for executing MongoDB queries, exploring data, and performing various operations.
 
+## Previews
+### Split UI
+![PreviewOne](./p1.png)
+### Autocompletion
+![PreviewTwo](./p2.png)
+### Customization
+![PreviewThree](./p3.png)
+
 ## Features
 
-- **Query Execution**: Run MongoDB queries and commands directly from the editor.
+- **Query and Aggregations Execution**: Run MongoDB queries and aggregations directly from the editor.
 - **Data Exploration**: View and analyze MongoDB data in a user-friendly format.
-- **Database Management**: Create, delete, and manage databases and collections.
-- **Document Manipulation**: Insert, update, and delete documents in your MongoDB collections.
 - **Syntax Highlighting**: MongoDB query syntax highlighting for improved readability.
 
-## Requirements
+## Todo in the future
+- **Database Management**: Create, delete, and manage databases and collections.
+- **Document Manipulation**: Insert, update, and delete documents in your MongoDB collections.
 
-- [Visual Studio Code](https://code.visualstudio.com) version 1.60.0 or later.
+## Requirements
 - An active MongoDB connection.
 
 ## Installation
@@ -25,18 +33,18 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 
 ## Usage
 
-1. Open a MongoDB query file (e.g., with a `.mongo` or `.js` extension).
-2. Connect to a MongoDB server by clicking on the "Connect" button in the status bar at the bottom of the editor.
-3. Write your MongoDB queries or commands in the editor.
-4. Execute the query by either clicking on the "Run" button in the editor or using the keyboard shortcut `Ctrl+Enter`.
-5. View the query results in the output panel or in a separate tab, depending on your settings.
-6. Explore and interact with the data using the provided tools and features.
+1. Open the Command Palette by pressing Ctrl+Shift+P (Windows/Linux) or Cmd+Shift+P (Mac).
+2. Search for and select the "**Mongo Playground**" command and hit **Enter** or **Select it using your mouse** ":)".
+3. The extension will connect to the MongoDB server.
+4. Write your MongoDB Aggregations in the editor.
+5. View the results in the output panel on the right side.
+7. Explore and interact with the database the setting panel.
 
 ## Configuration
 
-The Mongo Playground extension provides several configuration options that can be customized to suit your specific needs. You can modify these settings by navigating to the VSCode settings panel (`File > Preferences > Settings`) and searching for "Mongo Playground".
+The Mongo Playground extension provides some minimal but needed configuration options that can be customized to suit your specific needs. It provide its own setting for configuration. 
 
-For example, you can configure the MongoDB connection settings, result display options, syntax highlighting colors, and more.
+For example, you can configure the MongoDB connection settings, theme colors, and database selection and collection name selection and mongodb-url.
 
 ## Feedback and Contributions
 
