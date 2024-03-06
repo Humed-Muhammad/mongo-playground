@@ -39,7 +39,7 @@ export default {
     sourcemap: true,
     format: "es",
     name: "app",
-    dir: "dist/bundle",
+    dir: "dist//assets",
   },
   plugins: [
     svelte({
