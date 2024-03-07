@@ -20,18 +20,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
       );
 
-      const scriptUri = panel.webview.asWebviewUri(
-        vscode.Uri.file(
-          path.join(context.extensionPath, "dist", "assets/main.js")
-        )
-      );
-      const styleUri = panel.webview.asWebviewUri(
-        vscode.Uri.file(
-          path.join(context.extensionPath, "dist", "assets/bundle.css")
-        )
-      );
+      // const scriptUri = panel.webview.asWebviewUri(
+      //   vscode.Uri.file(
+      //     path.join(context.extensionPath, "dist", "assets/main.js")
+      //   )
+      // );
+      // const styleUri = panel.webview.asWebviewUri(
+      //   vscode.Uri.file(
+      //     path.join(context.extensionPath, "dist", "assets/bundle.css")
+      //   )
+      // );
 
-      panel.webview.html = getView(scriptUri, styleUri); // Set the HTML content for the WebView
+      panel.webview.html = getWebviewContent(); // Set the HTML content for the WebView
 
       // Set the icon for the panel
       const iconPath = vscode.Uri.file(context.asAbsolutePath("icon.png"));

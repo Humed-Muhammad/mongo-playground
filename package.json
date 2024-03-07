@@ -1,6 +1,5 @@
 {
   "name": "mongo-playground",
-  "type": "module",
   "displayName": "mongo-playground",
   "description": "MongoDb Aggrigation Playground In your Vscode",
   "version": "0.0.7",
