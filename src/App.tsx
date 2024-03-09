@@ -6,12 +6,14 @@ import { DatabaseCollection, Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import { Copy } from "lucide-react";
+import { suggestions } from "./constants";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
 
 function App() {
   const editorRef = useRef(null);
+
   const webViewSetting = localStorage.getItem("mongodbSettings");
   const database = localStorage.getItem("dbNameAndCollection");
   const [dbNamesAndCollections, setDbNamesAndCollections] = useState<
@@ -64,6 +66,22 @@ function App() {
     editorRef.current = editor;
   };
 
+  const handleAggDidMount = (_editor: any, monaco: any) => {
+    monaco.languages.registerCompletionItemProvider("json", {
+      provideCompletionItems: () => {
+        // Define your suggestion array
+        const allSuggestions = suggestions(monaco);
+
+        return {
+          suggestions: allSuggestions.map((suggestion) => ({
+            ...suggestion,
+            insertText: suggestion.label,
+          })),
+        };
+      },
+    });
+  };
+
   useEffect(() => {
     if (editorRef.current) {
       //@ts-ignore
@@ -96,6 +114,7 @@ function App() {
             insertSpaces: true,
             formatOnPaste: true,
           }}
+          onMount={handleAggDidMount}
         />
 
         <Button variant="ghost" className="absolute top-4 right-2">
