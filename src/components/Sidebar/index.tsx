@@ -78,7 +78,13 @@ export const Sidebar = ({
 
   return (
     <div>
-      <Card className=" overflow-y-scroll h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 border-r-slate-600 bg-[#1E1E1E] p-4     text-white shadow-none">
+      <Card
+        className={` overflow-y-scroll h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 border-r-slate-600 ${
+          settings.theme === "vs-dark"
+            ? "bg-[#1E1E1E] text-white"
+            : "bg-white text-gray-700"
+        } p-4 shadow-none`}
+      >
         <div className="mb-3 flex flex-col space-y-3">
           <div className="flex items-center justify-between">
             <Label>MongoDB URL</Label>
@@ -107,7 +113,9 @@ export const Sidebar = ({
           <div className="flex flex-col w-full items-center justify-between space-y-3">
             <Input
               value={url}
-              className="h-8 rounded-sm bg-gray-300 text-gray-700"
+              className={`h-8 rounded-sm ${
+                settings.theme === "vs-dark" ? "bg-gray-300" : "bg-gray-400"
+              } text-gray-800`}
               placeholder="MongoDb URL"
               onChange={(e) => setUrl(e.target.value)}
             />

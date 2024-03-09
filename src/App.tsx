@@ -4,6 +4,8 @@ import "./global.css";
 import { useEffect, useRef, useState } from "react";
 import { DatabaseCollection, Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
+import { Button } from "./components/ui/button";
+import { Copy } from "lucide-react";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -96,6 +98,9 @@ function App() {
           }}
         />
 
+        <Button variant="ghost" className="absolute top-4 right-2">
+          <Copy className="text-white" size={18} />
+        </Button>
         {error && (
           <div className="absolute bottom-4 left-2 z-10 h-auto rounded overflow-y-scroll w-[54%] items-center p-3 bg-yellow-50 text-red-600 text-md">
             {error}
