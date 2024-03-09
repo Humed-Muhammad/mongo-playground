@@ -2,11 +2,14 @@ import * as vscode from "vscode";
 import { executeAggregationQuery } from "./executeAggregationQuery";
 import { MongoClient } from "mongodb";
 import path from "path";
-// import { Settings } from "./types";
 
 const getMongoClient = (url: string) => {
-  const client = new MongoClient(url);
-  return client.connect();
+  try {
+    const client = new MongoClient(url);
+    return client.connect();
+  } catch (error) {
+    throw error;
+  }
 };
 
 export function activate(context: vscode.ExtensionContext) {
@@ -30,17 +33,16 @@ export function activate(context: vscode.ExtensionContext) {
 
         const scriptUri = panel.webview.asWebviewUri(
           vscode.Uri.file(
-            path.join(context.extensionPath, "dist", "assets", "index.js")
+            path.join(context.extensionPath, "dist", "webview", "index.js")
           )
         );
         const styleUri = panel.webview.asWebviewUri(
           vscode.Uri.file(
-            path.join(context.extensionPath, "dist", "assets", "index.css")
+            path.join(context.extensionPath, "dist", "webview", "index.css")
           )
         );
 
         panel.webview.html = getView(scriptUri, styleUri); // Set the HTML content for the WebView
-        // panel.webview.html = getWebviewContent(); // Set the HTML content for the WebView
 
         // Set the icon for the panel
         const iconPath = vscode.Uri.file(context.asAbsolutePath("icon.png"));
@@ -53,30 +55,39 @@ export function activate(context: vscode.ExtensionContext) {
             const aggregationQuery = message.query;
             let client: MongoClient;
 
-            if (message.command === "MongoDbUrl") {
-              client = await getMongoClient(message.url);
-            }
+            await getMongoClient(message.url)
+              .then((cl) => {
+                client = cl;
+              })
+              .catch((error) => {
+                return panel?.webview.postMessage({
+                  command: "queryResults",
+                  error: error.message,
+                });
+              });
+
             //@ts-ignore
             const adminDb = client?.db("admin");
-            const databaseList = await adminDb.admin().listDatabases();
+            const databaseList = await adminDb?.admin()?.listDatabases();
             const dbNamesAndCollections: Array<{ [dbName: string]: string[] }> =
               [];
+            if (databaseList) {
+              // Get the list of collections in each database
+              for (const db of databaseList.databases) {
+                //@ts-ignore
+                const dbInstance = client?.db(db.name);
+                const collectionList = await dbInstance
+                  .listCollections()
+                  .toArray();
+                const collectionListName: Array<string> = [];
+                collectionList.forEach((collection) => {
+                  collectionListName.push(collection.name);
+                });
 
-            // Get the list of collections in each database
-            for (const db of databaseList.databases) {
-              //@ts-ignore
-              const dbInstance = client?.db(db.name);
-              const collectionList = await dbInstance
-                .listCollections()
-                .toArray();
-              const collectionListName: Array<string> = [];
-              collectionList.forEach((collection) => {
-                collectionListName.push(collection.name);
-              });
-
-              dbNamesAndCollections.push({
-                [db.name]: collectionListName,
-              });
+                dbNamesAndCollections.push({
+                  [db.name]: collectionListName,
+                });
+              }
             }
 
             if (message.command === "MongoDbUrl") {
@@ -103,7 +114,7 @@ export function activate(context: vscode.ExtensionContext) {
                 })
                 .catch((error) => {
                   // Handle error
-
+                  console.log("==========>", error.message);
                   panel?.webview.postMessage({
                     command: "queryResults",
                     error: error.message,

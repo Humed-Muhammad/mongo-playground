@@ -1,7 +1,7 @@
 import Editor from "@monaco-editor/react";
 import "./global.css";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DatabaseCollection, Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
 
@@ -9,6 +9,7 @@ import { Sidebar } from "./components/Sidebar";
 const vscode = acquireVsCodeApi();
 
 function App() {
+  const editorRef = useRef(null);
   const webViewSetting = localStorage.getItem("mongodbSettings");
   const database = localStorage.getItem("dbNameAndCollection");
   const [dbNamesAndCollections, setDbNamesAndCollections] = useState<
@@ -17,6 +18,9 @@ function App() {
   const [settings, setSettings] = useState<Settings>(
     JSON.parse(webViewSetting ?? "{}")
   );
+
+  const [queryResults, setQueryResults] = useState<string>();
+  const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
     localStorage.setItem("mongodbSettings", JSON.stringify(settings));
@@ -28,9 +32,6 @@ function App() {
 
   useEffect(() => {
     window.addEventListener("message", (event) => {
-      // const setti = JSON.parse(
-      //   localStorage.getItem("mongodbSettings") || JSON.stringify(settings)
-      // );
       const message = event.data;
       if (message.command === "dbNameAndCollection") {
         setDbNamesAndCollections(dbNamesAndCollections);
@@ -38,39 +39,37 @@ function App() {
           "dbNameAndCollection",
           JSON.stringify(message.dbNamesAndCollections)
         );
-        // message.dbNamesAndCollections.map((database)=> {
-        //   const dbName = Object.keys(database)[0];
-        //   const dbNameOption = document.createElement("option");
-        //   dbNameOption.value = dbName;
-        //   dbNameOption.textContent = dbName;
-        //   dbNameSelector.appendChild(dbNameOption)
-
-        // })
-
-        // createCollectionOptions(setti.dbName)
-        // dbNameSelector.value = setti.dbName;
-        // collectionNameSelector.value = setti.collectionName
       }
-      // if (message.command === "queryResults") {
-      //   if (message.error) {
-      //     errorContainer.style.display = "flex";
-      //     errorContainer.innerText = JSON.stringify(message.error);
-      //   } else {
-      //     errorContainer.style.display = "none";
-      //     errorContainer.innerText = "";
-      //     editorTwo.setValue(JSON.stringify(message.results.slice(0, 20)));
-      //   }
+      if (message.command === "queryResults") {
+        if (message.error) {
+          setError(message.error);
+        } else {
+          setError(undefined);
 
-      //   editorTwo.getAction("editor.action.formatDocument").run();
-      // }
-      // });
+          setQueryResults(JSON.stringify(message.results.slice(0, 20)));
+        }
+      }
     });
+
     return () => {
       window.removeEventListener("message", () => {
-        console.log("Event Removed Because Component Unmounted");
+        console.info("Event Removed Because Component Unmounted");
       });
     };
   }, []);
+
+  const handleEditorDidMount = (editor: any) => {
+    editorRef.current = editor;
+  };
+
+  useEffect(() => {
+    if (editorRef.current) {
+      //@ts-ignore
+      editorRef.current.getAction("editor.action.formatDocument").run();
+      //@ts-ignore
+      editorRef.current.setPosition({ lineNumber: 1, column: 1 });
+    }
+  }, [queryResults, editorRef]);
 
   return (
     <div className="w-screen flex justify-between h-screen overflow-x-hidden">
@@ -79,8 +78,9 @@ function App() {
         vscode={vscode}
         setSettings={setSettings}
         settings={settings}
+        setError={setError}
       />
-      <div className="flex flex-grow justify-between h-full overflow-x-hidden">
+      <div className="flex flex-grow justify-between h-full overflow-x-hidden relative">
         <Editor
           height="100%"
           defaultLanguage="json"
@@ -92,21 +92,31 @@ function App() {
           options={{
             tabSize: 2,
             insertSpaces: true,
+            formatOnPaste: true,
           }}
         />
+
+        {error && (
+          <div className="absolute bottom-4 left-2 z-10 h-auto rounded overflow-y-scroll w-[54%] items-center p-3 bg-yellow-50 text-red-600 text-md">
+            {error}
+          </div>
+        )}
+
         <Editor
+          value={queryResults}
           height="100%"
           defaultLanguage="json"
           defaultValue="[]"
           width="45%"
-          // className="flex-grow"
           theme={settings.theme}
           options={{
             lineNumbers: "off",
-            readOnly: true,
+            // readOnly: true,
             tabSize: 2,
             insertSpaces: true,
           }}
+          //@ts-ignore
+          onMount={handleEditorDidMount}
         />
       </div>
     </div>

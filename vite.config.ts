@@ -7,6 +7,12 @@ export default defineConfig({
   plugins: [react()],
   build: {
     outDir: "dist",
+    rollupOptions: {
+      output: {
+        assetFileNames: "webview/index.css",
+        entryFileNames: "webview/index.js",
+      },
+    },
   },
   resolve: {
     alias: {
