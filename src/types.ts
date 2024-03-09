@@ -5,3 +5,7 @@ export interface Settings {
   collectionName: string;
   query: string | undefined;
 }
+
+export interface DatabaseCollection {
+  [dbName: string]: Array<string>;
+}

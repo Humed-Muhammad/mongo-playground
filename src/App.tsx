@@ -2,7 +2,7 @@ import Editor from "@monaco-editor/react";
 import "./global.css";
 
 import { useEffect, useState } from "react";
-import { Settings } from "./types";
+import { DatabaseCollection, Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
 
 //@ts-ignore
@@ -11,9 +11,9 @@ const vscode = acquireVsCodeApi();
 function App() {
   const webViewSetting = localStorage.getItem("mongodbSettings");
   const database = localStorage.getItem("dbNameAndCollection");
-  const [dbNamesAndCollections, setDbNamesAndCollections] = useState(
-    JSON.stringify(database ?? "")
-  );
+  const [dbNamesAndCollections, setDbNamesAndCollections] = useState<
+    Array<DatabaseCollection>
+  >(JSON.parse(database ?? ""));
   const [settings, setSettings] = useState<Settings>(
     JSON.parse(webViewSetting ?? "{}")
   );
@@ -33,7 +33,6 @@ function App() {
       // );
       const message = event.data;
       if (message.command === "dbNameAndCollection") {
-        console.log(message.dbNamesAndCollections);
         setDbNamesAndCollections(dbNamesAndCollections);
         localStorage.setItem(
           "dbNameAndCollection",
@@ -75,14 +74,19 @@ function App() {
 
   return (
     <div className="w-screen flex justify-between h-screen overflow-x-hidden">
-      <Sidebar setSettings={setSettings} settings={settings} />
+      <Sidebar
+        dbNamesAndCollections={dbNamesAndCollections}
+        vscode={vscode}
+        setSettings={setSettings}
+        settings={settings}
+      />
       <div className="flex flex-grow justify-between h-full overflow-x-hidden">
         <Editor
           height="100%"
           defaultLanguage="json"
           defaultValue={settings.query}
-          // width="50%"
-          className="flex-grow"
+          width="55%"
+          // className="flex-grow"
           theme={settings.theme}
           onChange={(query) => setSettings((prev) => ({ ...prev, query }))}
           options={{
@@ -94,7 +98,8 @@ function App() {
           height="100%"
           defaultLanguage="json"
           defaultValue="[]"
-          className="flex-grow"
+          width="45%"
+          // className="flex-grow"
           theme={settings.theme}
           options={{
             lineNumbers: "off",
