@@ -55,16 +55,43 @@ export function activate(context: vscode.ExtensionContext) {
             const aggregationQuery = message.query;
             let client: MongoClient;
 
-            await getMongoClient(message.url)
-              .then((cl) => {
-                client = cl;
-              })
-              .catch((error) => {
-                return panel?.webview.postMessage({
-                  command: "queryResults",
-                  error: error.message,
-                });
-              });
+            if (message.command === "copySuccess") {
+              vscode.window.showInformationMessage("Copied successfully!");
+            }
+
+            if (message.command === "copyError") {
+              vscode.window.showErrorMessage(`Failed to copy`);
+            }
+
+            await vscode.window.withProgress(
+              {
+                location: vscode.ProgressLocation.Notification,
+                cancellable: false,
+                title:
+                  message.command === "MongoDbUrl"
+                    ? "Connecting to MongoDB"
+                    : message.command === "executeQuery"
+                    ? "Aggregating..."
+                    : "",
+              },
+
+              async () => {
+                await getMongoClient(message.url)
+                  .then((cl) => {
+                    client = cl;
+                    message.command === "MongoDbUrl" &&
+                      vscode.window.showInformationMessage(
+                        "Connected to MongoDB successfully!"
+                      );
+                  })
+                  .catch((error) => {
+                    message.command === "MongoDbUrl" &&
+                      vscode.window.showErrorMessage(
+                        `Failed to connect to MongoDB: ${error.message}`
+                      );
+                  });
+              }
+            );
 
             //@ts-ignore
             const adminDb = client?.db("admin");
@@ -113,8 +140,6 @@ export function activate(context: vscode.ExtensionContext) {
                   });
                 })
                 .catch((error) => {
-                  // Handle error
-                  console.log("==========>", error.message);
                   panel?.webview.postMessage({
                     command: "queryResults",
                     error: error.message,

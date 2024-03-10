@@ -1,3 +1,21 @@
+import { Settings } from "@/types";
+
+export const themeBGColor = (settings: Settings) =>
+  settings.theme === "vs-dark"
+    ? "bg-[#1E1E1E] text-white"
+    : "bg-white text-gray-700";
+
+export const themeTextColor = (settings: Settings) =>
+  settings.theme === "vs-dark" ? "text-white" : "text-[#1E1E1E]";
+
+export const settingsInitial: Settings = {
+  collectionName: "test",
+  dbName: "test",
+  query: "[]",
+  theme: "vs-dark",
+  url: "mongodb://localhost:27017",
+};
+
 export const suggestions = (monaco: any) => [
   { label: "$abs", kind: monaco.languages.CompletionItemKind.Keyword },
   { label: "$accumulator", kind: monaco.languages.CompletionItemKind.Keyword },

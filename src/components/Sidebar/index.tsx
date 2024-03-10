@@ -17,21 +17,16 @@ import { DatabaseCollection, Settings } from "@/types";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { Database, Folder, Palette } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
+import { Database, Folder, Moon, Sun } from "lucide-react";
+
+import { Switch } from "../ui/switch";
+import { settingsInitial, themeBGColor } from "@/constants";
 
 interface Props {
   vscode: any;
   settings: Settings;
   setSettings: Dispatch<SetStateAction<Settings>>;
-  dbNamesAndCollections: DatabaseCollection[];
+  dbNamesAndCollections: DatabaseCollection[] | undefined;
   setError: Dispatch<SetStateAction<string | undefined>>;
 }
 
@@ -42,7 +37,7 @@ export const Sidebar = ({
   setError,
   settings,
 }: Props) => {
-  const [url, setUrl] = useState("mongodb://localhost:27017");
+  const [url, setUrl] = useState(settingsInitial.url);
   const [selectedCollection, setSelectedCollection] = useState<
     string | undefined
   >(undefined);
@@ -65,13 +60,14 @@ export const Sidebar = ({
   }, [settings.url]);
 
   const getDbAndCol = useMemo(() => {
-    let dbNameIndex = 1;
-
-    dbNamesAndCollections.forEach((entry, index) => {
-      if (entry[settings.dbName]) {
-        dbNameIndex = index;
-      }
-    });
+    let dbNameIndex = 0;
+    if (dbNamesAndCollections) {
+      dbNamesAndCollections.forEach((entry, index) => {
+        if (entry[settings.dbName]) {
+          dbNameIndex = index;
+        }
+      });
+    }
 
     return { dbNameIndex };
   }, [settings.dbName, JSON.stringify(dbNamesAndCollections)]);
@@ -79,36 +75,28 @@ export const Sidebar = ({
   return (
     <div>
       <Card
-        className={` overflow-y-scroll h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 border-r-slate-600 ${
-          settings.theme === "vs-dark"
-            ? "bg-[#1E1E1E] text-white"
-            : "bg-white text-gray-700"
-        } p-4 shadow-none`}
+        className={` overflow-y-scroll h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 border-r-slate-600 ${themeBGColor(
+          settings
+        )} p-4 shadow-none`}
       >
         <div className="mb-3 flex flex-col space-y-3">
           <div className="flex items-center justify-between">
             <Label>MongoDB URL</Label>
-            <Popover>
-              <PopoverTrigger>
-                <Palette size={18} />
-              </PopoverTrigger>
-              <PopoverContent>
-                <Select
-                  value={settings.theme}
-                  onValueChange={(theme) =>
-                    setSettings((prev) => ({ ...prev, theme }))
+            <div className="flex items-center space-x-2">
+              <Sun size={16} />
+              <Switch
+                className="text-gray-200"
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSettings((prev) => ({ ...prev, theme: "vs-dark" }));
+                  } else {
+                    setSettings((prev) => ({ ...prev, theme: "vs-light" }));
                   }
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Theme" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="vs-light">Light</SelectItem>
-                    <SelectItem value="vs-dark">Dark</SelectItem>
-                  </SelectContent>
-                </Select>
-              </PopoverContent>
-            </Popover>
+                }}
+                checked={settings.theme === "vs-dark"}
+              />
+              <Moon size={16} />
+            </div>
           </div>
           <div className="flex flex-col w-full items-center justify-between space-y-3">
             <Input

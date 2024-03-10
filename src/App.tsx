@@ -5,8 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { DatabaseCollection, Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
-import { Copy } from "lucide-react";
-import { suggestions } from "./constants";
+import { Copy, FolderDown } from "lucide-react";
+import {
+  settingsInitial,
+  suggestions,
+  themeBGColor,
+  themeTextColor,
+} from "./constants";
+import { Card } from "./components/ui/card";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -16,12 +22,23 @@ function App() {
 
   const webViewSetting = localStorage.getItem("mongodbSettings");
   const database = localStorage.getItem("dbNameAndCollection");
-  const [dbNamesAndCollections, setDbNamesAndCollections] = useState<
-    Array<DatabaseCollection>
-  >(JSON.parse(database ?? ""));
-  const [settings, setSettings] = useState<Settings>(
-    JSON.parse(webViewSetting ?? "{}")
-  );
+  const [dbNamesAndCollections, setDbNamesAndCollections] =
+    useState<Array<DatabaseCollection>>();
+  const [settings, setSettings] = useState<Settings>(settingsInitial);
+
+  useEffect(() => {
+    if (database) {
+      const parsedDb = JSON.parse(database);
+      setDbNamesAndCollections(parsedDb);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (webViewSetting) {
+      const parsedSettings = JSON.parse(webViewSetting);
+      setSettings(parsedSettings);
+    }
+  }, []);
 
   const [queryResults, setQueryResults] = useState<string>();
   const [error, setError] = useState<string | undefined>();
@@ -38,7 +55,7 @@ function App() {
     window.addEventListener("message", (event) => {
       const message = event.data;
       if (message.command === "dbNameAndCollection") {
-        setDbNamesAndCollections(dbNamesAndCollections);
+        setDbNamesAndCollections(message.dbNamesAndCollections);
         localStorage.setItem(
           "dbNameAndCollection",
           JSON.stringify(message.dbNamesAndCollections)
@@ -91,6 +108,17 @@ function App() {
     }
   }, [queryResults, editorRef]);
 
+  function copyToClipboard() {
+    navigator.clipboard
+      .writeText(settings.query ?? "")
+      .then(() => {
+        vscode.postMessage({ command: "copySuccess" });
+      })
+      .catch((error) => {
+        vscode.postMessage({ command: "copyError", error: error.message });
+      });
+  }
+
   return (
     <div className="w-screen flex justify-between h-screen overflow-x-hidden">
       <Sidebar
@@ -101,47 +129,78 @@ function App() {
         setError={setError}
       />
       <div className="flex flex-grow justify-between h-full overflow-x-hidden relative">
-        <Editor
-          height="100%"
-          defaultLanguage="json"
-          defaultValue={settings.query}
-          width="55%"
-          // className="flex-grow"
-          theme={settings.theme}
-          onChange={(query) => setSettings((prev) => ({ ...prev, query }))}
-          options={{
-            tabSize: 2,
-            insertSpaces: true,
-            formatOnPaste: true,
-          }}
-          onMount={handleAggDidMount}
-        />
+        <div className="w-[55%]">
+          <Card
+            className={`w-full p-2 px-6 ${themeBGColor(
+              settings
+            )}  flex justify-end items-center order rounded-none  border-0`}
+          >
+            <Button
+              onClick={copyToClipboard}
+              variant="ghost"
+              className={`top-4 h-auto right-2 p-2 rounded-sm ${themeTextColor(
+                settings
+              )} hover:text-gray-500`}
+            >
+              Copy <Copy size={18} />
+            </Button>
+          </Card>
+          <Editor
+            height="100%"
+            defaultLanguage="json"
+            defaultValue={settings.query}
+            width="100%"
+            // className="flex-grow"
+            theme={settings.theme}
+            onChange={(query) => setSettings((prev) => ({ ...prev, query }))}
+            options={{
+              tabSize: 2,
+              insertSpaces: true,
+              formatOnPaste: true,
+            }}
+            onMount={handleAggDidMount}
+          />
 
-        <Button variant="ghost" className="absolute top-4 right-2">
-          <Copy className="text-white" size={18} />
-        </Button>
-        {error && (
-          <div className="absolute bottom-4 left-2 z-10 h-auto rounded overflow-y-scroll w-[54%] items-center p-3 bg-yellow-50 text-red-600 text-md">
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="absolute bottom-4 left-2 z-10 h-auto rounded overflow-y-scroll w-[52%] items-center p-3 bg-yellow-50 text-red-600 text-md">
+              {error}
+            </div>
+          )}
+        </div>
 
-        <Editor
-          value={queryResults}
-          height="100%"
-          defaultLanguage="json"
-          defaultValue="[]"
-          width="45%"
-          theme={settings.theme}
-          options={{
-            lineNumbers: "off",
-            // readOnly: true,
-            tabSize: 2,
-            insertSpaces: true,
-          }}
-          //@ts-ignore
-          onMount={handleEditorDidMount}
-        />
+        <div className="w-[45%]">
+          <Card
+            className={`w-full p-2 px-6 ${themeBGColor(
+              settings
+            )}  flex justify-end items-center order rounded-none  border-0`}
+          >
+            <Button
+              onClick={copyToClipboard}
+              variant="ghost"
+              className={`top-4 h-auto right-2 p-2 rounded-sm ${themeTextColor(
+                settings
+              )} hover:text-gray-500`}
+            >
+              Export <FolderDown size={18} />
+            </Button>
+          </Card>
+          <Editor
+            value={queryResults}
+            height="100%"
+            defaultLanguage="json"
+            defaultValue="[]"
+            width="100%"
+            theme={settings.theme}
+            options={{
+              lineNumbers: "off",
+              // readOnly: true,
+              tabSize: 2,
+              insertSpaces: true,
+            }}
+            //@ts-ignore
+            onMount={handleEditorDidMount}
+          />
+        </div>
       </div>
     </div>
   );
