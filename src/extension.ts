@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { executeAggregationQuery } from "./executeAggregationQuery";
 import { MongoClient } from "mongodb";
 import path from "path";
+import { saveCsvFile, saveJsonFile } from "./helpers";
 
 const getMongoClient = (url: string) => {
   try {
@@ -61,6 +62,13 @@ export function activate(context: vscode.ExtensionContext) {
 
             if (message.command === "copyError") {
               vscode.window.showErrorMessage(`Failed to copy`);
+            }
+
+            if (message.command === "saveJSON") {
+              saveJsonFile(message.queryResults);
+            }
+            if (message.command === "saveCSV") {
+              saveCsvFile(message.queryResults);
             }
 
             await vscode.window.withProgress(

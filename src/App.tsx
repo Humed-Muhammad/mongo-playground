@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { DatabaseCollection, Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
-import { Copy, FolderDown } from "lucide-react";
+import { Copy, FileJson, FileSpreadsheet, FolderDown } from "lucide-react";
 import {
   settingsInitial,
   suggestions,
@@ -13,6 +13,12 @@ import {
   themeTextColor,
 } from "./constants";
 import { Card } from "./components/ui/card";
+import { Label } from "./components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./components/ui/popover";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -133,16 +139,17 @@ function App() {
           <Card
             className={`w-full p-2 px-6 ${themeBGColor(
               settings
-            )}  flex justify-end items-center order rounded-none  border-0`}
+            )}  flex justify-between items-center order rounded-none  border-0`}
           >
+            <Label>Pipeline</Label>
             <Button
               onClick={copyToClipboard}
               variant="ghost"
-              className={`top-4 h-auto right-2 p-2 rounded-sm ${themeTextColor(
+              className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
                 settings
               )} hover:text-gray-500`}
             >
-              Copy <Copy size={18} />
+              <Label className="cursor-pointer">Copy</Label> <Copy size={18} />
             </Button>
           </Card>
           <Editor
@@ -150,7 +157,6 @@ function App() {
             defaultLanguage="json"
             defaultValue={settings.query}
             width="100%"
-            // className="flex-grow"
             theme={settings.theme}
             onChange={(query) => setSettings((prev) => ({ ...prev, query }))}
             options={{
@@ -172,17 +178,50 @@ function App() {
           <Card
             className={`w-full p-2 px-6 ${themeBGColor(
               settings
-            )}  flex justify-end items-center order rounded-none  border-0`}
+            )}  flex justify-between items-center order rounded-none  border-0`}
           >
-            <Button
-              onClick={copyToClipboard}
-              variant="ghost"
-              className={`top-4 h-auto right-2 p-2 rounded-sm ${themeTextColor(
-                settings
-              )} hover:text-gray-500`}
-            >
-              Export <FolderDown size={18} />
-            </Button>
+            <Label>Output</Label>
+            <Popover>
+              <PopoverTrigger>
+                <Button
+                  variant="ghost"
+                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
+                    settings
+                  )} hover:text-gray-500`}
+                >
+                  <Label className="cursor-pointer">Export</Label>{" "}
+                  <FolderDown size={18} />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                className={`w-auto p-3 flex flex-col ${themeBGColor(settings)}`}
+              >
+                <Button
+                  onClick={() => {
+                    vscode.postMessage({ command: "saveJSON", queryResults });
+                  }}
+                  variant="ghost"
+                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
+                    settings
+                  )} hover:text-gray-500`}
+                >
+                  <Label className="cursor-pointer">JSON</Label>{" "}
+                  <FileJson size={18} />
+                </Button>
+                <Button
+                  onClick={() => {
+                    vscode.postMessage({ command: "saveCSV", queryResults });
+                  }}
+                  variant="ghost"
+                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
+                    settings
+                  )} hover:text-gray-500`}
+                >
+                  <Label className="cursor-pointer">CSV</Label>{" "}
+                  <FileSpreadsheet size={18} />
+                </Button>
+              </PopoverContent>
+            </Popover>
           </Card>
           <Editor
             value={queryResults}

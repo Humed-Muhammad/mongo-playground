@@ -72,6 +72,7 @@ export const Sidebar = ({
     return { dbNameIndex };
   }, [settings.dbName, JSON.stringify(dbNamesAndCollections)]);
 
+  console.log("========>", getDbAndCol);
   return (
     <div>
       <Card
@@ -127,7 +128,7 @@ export const Sidebar = ({
         </CardHeader>
         <Accordion
           type="single"
-          defaultValue={`item-${getDbAndCol.dbNameIndex}`}
+          value={`item-${getDbAndCol.dbNameIndex}`}
           collapsible
           className="w-full "
         >
