@@ -71,6 +71,12 @@ export function activate(context: vscode.ExtensionContext) {
               saveCsvFile(message.queryResults);
             }
 
+            if (message.command === "pipelineSaved") {
+              vscode.window.showInformationMessage(
+                "Pipeline Saved Successfully!"
+              );
+            }
+
             await vscode.window.withProgress(
               {
                 location: vscode.ProgressLocation.Notification,

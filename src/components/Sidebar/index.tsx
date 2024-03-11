@@ -38,6 +38,9 @@ export const Sidebar = ({
   settings,
 }: Props) => {
   const [url, setUrl] = useState(settingsInitial.url);
+  const [selectedAccordion, setSelectedAccordion] = useState<
+    string | undefined
+  >(undefined);
   const [selectedCollection, setSelectedCollection] = useState<
     string | undefined
   >(undefined);
@@ -72,7 +75,6 @@ export const Sidebar = ({
     return { dbNameIndex };
   }, [settings.dbName, JSON.stringify(dbNamesAndCollections)]);
 
-  console.log("========>", getDbAndCol);
   return (
     <div>
       <Card
@@ -128,9 +130,10 @@ export const Sidebar = ({
         </CardHeader>
         <Accordion
           type="single"
-          value={`item-${getDbAndCol.dbNameIndex}`}
+          value={selectedAccordion ?? `item-${getDbAndCol.dbNameIndex}`}
           collapsible
-          className="w-full "
+          className="w-full"
+          onValueChange={(value) => setSelectedAccordion(value)}
         >
           {dbNamesAndCollections?.map((db, id) => (
             <AccordionItem
@@ -140,12 +143,12 @@ export const Sidebar = ({
             >
               <AccordionTrigger
                 className="hover:bg-gray-100 h-8 hover:text-gray-700 p-2 mb-3"
-                onClick={() =>
+                onClick={() => {
                   setSettings((prev) => ({
                     ...prev,
                     dbName: Object.keys(db)[0],
-                  }))
-                }
+                  }));
+                }}
               >
                 <div className="flex items-center space-x-2">
                   <Database size={18} />

@@ -9,3 +9,7 @@ export interface Settings {
 export interface DatabaseCollection {
   [dbName: string]: Array<string>;
 }
+
+export interface PipelineStoreType {
+  [key: string]: string | undefined;
+}

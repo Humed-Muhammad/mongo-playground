@@ -1,11 +1,17 @@
 import Editor from "@monaco-editor/react";
 import "./global.css";
 
-import { useEffect, useRef, useState } from "react";
-import { DatabaseCollection, Settings } from "./types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { DatabaseCollection, PipelineStoreType, Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
-import { Copy, FileJson, FileSpreadsheet, FolderDown } from "lucide-react";
+import {
+  Copy,
+  FileJson,
+  FileSpreadsheet,
+  FolderDown,
+  Save,
+} from "lucide-react";
 import {
   settingsInitial,
   suggestions,
@@ -19,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./components/ui/popover";
+import { Switch } from "./components/ui/switch";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -28,9 +35,19 @@ function App() {
 
   const webViewSetting = localStorage.getItem("mongodbSettings");
   const database = localStorage.getItem("dbNameAndCollection");
+  const localPipelineStore = localStorage.getItem("pipelineStore");
+  const localAutoSave = localStorage.getItem("autoSave");
+
   const [dbNamesAndCollections, setDbNamesAndCollections] =
     useState<Array<DatabaseCollection>>();
   const [settings, setSettings] = useState<Settings>(settingsInitial);
+
+  const [queryResults, setQueryResults] = useState<string>();
+  const [pipelineStore, setPipelineStore] = useState<PipelineStoreType>({});
+  const [autoSave, setAutoSave] = useState<boolean>(
+    JSON.parse(localAutoSave ?? "false")
+  );
+  const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
     if (database) {
@@ -40,14 +57,18 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (localPipelineStore) {
+      const parsedLocalPipelineStore = JSON.parse(localPipelineStore);
+      setPipelineStore(parsedLocalPipelineStore);
+    }
+  }, []);
+
+  useEffect(() => {
     if (webViewSetting) {
       const parsedSettings = JSON.parse(webViewSetting);
       setSettings(parsedSettings);
     }
   }, []);
-
-  const [queryResults, setQueryResults] = useState<string>();
-  const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
     localStorage.setItem("mongodbSettings", JSON.stringify(settings));
@@ -125,6 +146,37 @@ function App() {
       });
   }
 
+  const pipelineKey = useMemo(
+    () => `${settings.dbName}-${settings.collectionName}`,
+    [settings.collectionName, settings.dbName]
+  );
+
+  const savePipeline = (auto?: boolean) => {
+    setPipelineStore((prev) => ({
+      ...prev,
+      [pipelineKey]: settings.query,
+    }));
+    if (!auto) {
+      vscode.postMessage({ command: "pipelineSaved" });
+    }
+  };
+
+  useEffect(() => {
+    localStorage.setItem("pipelineStore", JSON.stringify(pipelineStore));
+  }, [JSON.stringify(pipelineStore)]);
+
+  useEffect(() => {
+    if (autoSave) {
+      savePipeline(autoSave);
+    }
+  }, [autoSave, settings.query]);
+
+  const getQueryForDbCollection = useMemo(() => {
+    const singlePipe = pipelineStore?.[pipelineKey];
+
+    return singlePipe;
+  }, [JSON.stringify(pipelineStore), pipelineKey]);
+
   return (
     <div className="w-screen flex justify-between h-screen overflow-x-hidden">
       <Sidebar
@@ -139,9 +191,24 @@ function App() {
           <Card
             className={`w-full p-2 px-6 ${themeBGColor(
               settings
-            )}  flex justify-between items-center order rounded-none  border-0`}
+            )}  flex space-x-4 items-center order rounded-none  border-0`}
           >
-            <Label>Pipeline</Label>
+            <div className="flex items-center space-x-2">
+              <Label>Auto Save</Label>
+              <Switch checked={autoSave} onCheckedChange={setAutoSave} />
+            </div>
+            {!autoSave ? (
+              <Button
+                onClick={() => savePipeline()}
+                variant="ghost"
+                className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
+                  settings
+                )} hover:text-gray-500`}
+              >
+                <Label className="cursor-pointer">Save Pipeline</Label>{" "}
+                <Save size={18} />
+              </Button>
+            ) : null}
             <Button
               onClick={copyToClipboard}
               variant="ghost"
@@ -155,7 +222,7 @@ function App() {
           <Editor
             height="100%"
             defaultLanguage="json"
-            defaultValue={settings.query}
+            value={getQueryForDbCollection ?? settings.query}
             width="100%"
             theme={settings.theme}
             onChange={(query) => setSettings((prev) => ({ ...prev, query }))}
