@@ -178,8 +178,11 @@ function App() {
   }, [JSON.stringify(pipelineStore), pipelineKey]);
 
   useEffect(() => {
-    setSettings((prev) => ({ ...prev, query: getQueryForDbCollection }));
-  }, []);
+    setSettings((prev) => ({
+      ...prev,
+      query: getQueryForDbCollection ?? "[]",
+    }));
+  }, [getQueryForDbCollection]);
 
   return (
     <div className="w-screen flex justify-between h-screen overflow-x-hidden">

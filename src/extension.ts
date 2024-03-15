@@ -84,8 +84,6 @@ export function activate(context: vscode.ExtensionContext) {
                 title:
                   message.command === "MongoDbUrl"
                     ? "Connecting to MongoDB"
-                    : message.command === "executeQuery"
-                    ? "Aggregating..."
                     : "",
               },
 
