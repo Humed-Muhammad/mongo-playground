@@ -4,6 +4,3 @@ node_modules
 .vscode-test/
 *.vsix
 
-src
-package.json
-package-lock.json

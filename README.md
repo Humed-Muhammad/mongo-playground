@@ -4,17 +4,24 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 
 ## Previews
 ### Split UI
-![PreviewOne](./p1.webp)
+![PreviewOne](./p11.webp)
+
 ### Autocompletion and Error Messages
-![PreviewTwo](./p2.webp)
-### Customization
-![PreviewThree](./p3.webp)
+![PreviewTwo](./p33.webp)
+
+### Light and Dark Theme
+![PreviewThree](./p22.webp)
+![PreviewThree](./p11.webp)
 
 ## Features
 
+- **Save as much as pipeline you want**: Just save your pipelines on your machine and use theme using the select pipeline selector to use theme.
 - **Query and Aggregations Execution**: Run MongoDB queries and aggregations directly from the editor.
 - **Data Exploration**: View and analyze MongoDB data in a user-friendly format.
 - **Syntax Highlighting**: MongoDB query syntax highlighting for improved readability.
+- **Save Pipeline**: Save the pipeline or aggregation pipeline you created.
+- **Simple yet powerful UX**: Simply what you need no other extra unnecessary features.
+- **Start where you left off**: Just automatically remember where you left off.
 
 ## Todo in the future
 - **Database Management**: Create, delete, and manage databases and collections.
