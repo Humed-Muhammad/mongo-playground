@@ -2,7 +2,12 @@ import Editor from "@monaco-editor/react";
 import "./global.css";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DatabaseCollection, PipelineStoreType, Settings } from "./types";
+import {
+  AllPipelinesType,
+  DatabaseCollection,
+  PipelineStoreType,
+  Settings,
+} from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import {
@@ -25,7 +30,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "./components/ui/popover";
-import { Switch } from "./components/ui/switch";
+import { Input } from "./components/ui/input";
+import { PipelineSelector } from "./components/PipelineSelector";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -34,41 +40,59 @@ function App() {
   const editorRef = useRef(null);
 
   const webViewSetting = localStorage.getItem("mongodbSettings");
+  const currentQueryValue = localStorage.getItem("currentQuery");
   const database = localStorage.getItem("dbNameAndCollection");
   const localPipelineStore = localStorage.getItem("pipelineStore");
-  const localAutoSave = localStorage.getItem("autoSave");
 
   const [dbNamesAndCollections, setDbNamesAndCollections] =
     useState<Array<DatabaseCollection>>();
   const [settings, setSettings] = useState<Settings>(settingsInitial);
+  const [allPipelinesFiles, setAllPipelinesFiles] = useState<
+    AllPipelinesType[]
+  >([]);
 
   const [queryResults, setQueryResults] = useState<string>();
+  const [currentQuery, setCurrentQuery] = useState<string>("[]");
+  const [pipelineName, setPipelineName] = useState<string>("Untitled");
   const [pipelineStore, setPipelineStore] = useState<PipelineStoreType>({});
-  const [autoSave, setAutoSave] = useState<boolean>(
-    JSON.parse(localAutoSave ?? "false")
-  );
+
   const [error, setError] = useState<string | undefined>();
 
+  /**@EffectStart */
   useEffect(() => {
     if (database) {
       const parsedDb = JSON.parse(database);
       setDbNamesAndCollections(parsedDb);
     }
-  }, []);
 
-  useEffect(() => {
-    if (localPipelineStore) {
-      const parsedLocalPipelineStore = JSON.parse(localPipelineStore);
-      setPipelineStore(parsedLocalPipelineStore);
-    }
-  }, []);
-
-  useEffect(() => {
     if (webViewSetting) {
       const parsedSettings = JSON.parse(webViewSetting);
       setSettings(parsedSettings);
     }
+
+    if (localPipelineStore) {
+      const parsedLocalPipelineStore = JSON.parse(localPipelineStore);
+      setPipelineStore(parsedLocalPipelineStore);
+    }
+
+    vscode.postMessage({
+      command: "getAllPipelines",
+    });
+
+    if (currentQueryValue) {
+      const parsedCurrentQuery = JSON.parse(currentQueryValue);
+      setCurrentQuery(parsedCurrentQuery);
+    }
   }, []);
+
+  useEffect(() => {
+    if (editorRef.current) {
+      //@ts-ignore
+      editorRef.current.getAction("editor.action.formatDocument").run();
+      //@ts-ignore
+      editorRef.current.setPosition({ lineNumber: 1, column: 1 });
+    }
+  }, [queryResults, editorRef]);
 
   useEffect(() => {
     localStorage.setItem("mongodbSettings", JSON.stringify(settings));
@@ -97,6 +121,9 @@ function App() {
           setQueryResults(JSON.stringify(message.results.slice(0, 20)));
         }
       }
+      if (message.command === "allPipelinesFiles") {
+        setAllPipelinesFiles(message.allPipelinesFiles);
+      }
     });
 
     return () => {
@@ -106,6 +133,13 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("pipelineStore", JSON.stringify(pipelineStore));
+  }, [JSON.stringify(pipelineStore)]);
+
+  /**@EffectEnd */
+
+  /**@Handler **/
   const handleEditorDidMount = (editor: any) => {
     editorRef.current = editor;
   };
@@ -126,15 +160,6 @@ function App() {
     });
   };
 
-  useEffect(() => {
-    if (editorRef.current) {
-      //@ts-ignore
-      editorRef.current.getAction("editor.action.formatDocument").run();
-      //@ts-ignore
-      editorRef.current.setPosition({ lineNumber: 1, column: 1 });
-    }
-  }, [queryResults, editorRef]);
-
   function copyToClipboard() {
     navigator.clipboard
       .writeText(settings.query ?? "")
@@ -154,35 +179,24 @@ function App() {
   const savePipeline = (auto?: boolean) => {
     setPipelineStore((prev) => ({
       ...prev,
-      [pipelineKey]: settings.query,
+      [pipelineKey]: pipelineName,
     }));
+    vscode.postMessage({
+      command: "savePipeline",
+      query: settings.query,
+      name: pipelineName,
+    });
+
+    setTimeout(() => {
+      vscode.postMessage({
+        command: "getAllPipelines",
+      });
+    }, 100);
+
     if (!auto) {
       vscode.postMessage({ command: "pipelineSaved" });
     }
   };
-
-  useEffect(() => {
-    localStorage.setItem("pipelineStore", JSON.stringify(pipelineStore));
-  }, [JSON.stringify(pipelineStore)]);
-
-  useEffect(() => {
-    if (autoSave) {
-      savePipeline(autoSave);
-    }
-  }, [autoSave, settings.query]);
-
-  const getQueryForDbCollection = useMemo(() => {
-    const singlePipe = pipelineStore?.[pipelineKey];
-
-    return singlePipe;
-  }, [JSON.stringify(pipelineStore), pipelineKey]);
-
-  useEffect(() => {
-    setSettings((prev) => ({
-      ...prev,
-      query: getQueryForDbCollection ?? "[]",
-    }));
-  }, [getQueryForDbCollection]);
 
   return (
     <div className="w-screen flex justify-between h-screen overflow-x-hidden">
@@ -198,24 +212,44 @@ function App() {
           <Card
             className={`w-full p-2 px-6 ${themeBGColor(
               settings
-            )}  flex space-x-4 items-center order rounded-none  border-0`}
+            )}  flex flex-wrap space-x-4 items-center order rounded-none  border-0`}
           >
-            <div className="flex items-center space-x-2">
-              <Label>Auto Save</Label>
-              <Switch checked={autoSave} onCheckedChange={setAutoSave} />
+            <div>
+              <Label className="cursor-pointer">Pipeline name</Label>{" "}
+              <Input
+                className={`round-sm ${themeBGColor(settings)} w-32 h-7`}
+                placeholder="Pipeline name"
+                value={pipelineName}
+                onChange={(e) => {
+                  setPipelineName(e.target.value);
+                }}
+              />
             </div>
-            {!autoSave ? (
-              <Button
-                onClick={() => savePipeline()}
-                variant="ghost"
-                className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
-                  settings
-                )} hover:text-gray-500`}
-              >
-                <Label className="cursor-pointer">Save Pipeline</Label>{" "}
-                <Save size={18} />
-              </Button>
-            ) : null}
+            <div className="flex flex-col">
+              <Label className="mb-1">Select pipeline</Label>{" "}
+              {allPipelinesFiles ? (
+                <PipelineSelector
+                  settings={settings}
+                  options={allPipelinesFiles}
+                  pipelineStore={pipelineStore}
+                  pipelineKey={pipelineKey}
+                  setSettings={setSettings}
+                />
+              ) : null}
+            </div>
+            <Button
+              onClick={() => {
+                savePipeline();
+              }}
+              variant="ghost"
+              className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
+                settings
+              )} hover:text-gray-500`}
+            >
+              <Label className="cursor-pointer">Save Pipeline</Label>{" "}
+              <Save size={18} />
+            </Button>
+
             <Button
               onClick={copyToClipboard}
               variant="ghost"
@@ -229,10 +263,13 @@ function App() {
           <Editor
             height="100%"
             defaultLanguage="json"
-            value={settings.query}
+            value={settings.query || currentQuery}
             width="100%"
             theme={settings.theme}
-            onChange={(query) => setSettings((prev) => ({ ...prev, query }))}
+            onChange={(query) => {
+              setSettings((prev) => ({ ...prev, query }));
+              localStorage.setItem("currentQuery", JSON.stringify(query));
+            }}
             options={{
               tabSize: 2,
               insertSpaces: true,

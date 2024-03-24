@@ -13,3 +13,8 @@ export interface DatabaseCollection {
 export interface PipelineStoreType {
   [key: string]: string | undefined;
 }
+
+export type AllPipelinesType = {
+  value: string;
+  label: string;
+};

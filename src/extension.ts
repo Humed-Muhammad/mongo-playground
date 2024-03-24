@@ -2,7 +2,10 @@ import * as vscode from "vscode";
 import { executeAggregationQuery } from "./executeAggregationQuery";
 import { MongoClient } from "mongodb";
 import path from "path";
+import fs from "fs";
 import { saveCsvFile, saveJsonFile } from "./helpers";
+import { checkWorkspace } from "./lib/utils";
+import { AllPipelinesType } from "./types";
 
 const getMongoClient = (url: string) => {
   try {
@@ -23,6 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
       if (panel) {
         panel.reveal(vscode.ViewColumn.Two);
       } else {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
         panel = vscode.window.createWebviewPanel(
           "mongodbWebView", // Unique ID for the panel
           "MongoDB Aggregation", // Title of the panel
@@ -49,6 +53,36 @@ export function activate(context: vscode.ExtensionContext) {
         const iconPath = vscode.Uri.file(context.asAbsolutePath("icon.png"));
         panel.iconPath = iconPath;
 
+        /**
+         * The function `getAllSavedPipelines` reads pipeline files from a specified folder and sends
+         * their content to a webview panel.
+         */
+        const getAllSavedPipelines = () => {
+          const allPipelinesFiles: AllPipelinesType[] = [];
+          checkWorkspace({ workspaceFolders, vscode });
+
+          const userFolder = workspaceFolders?.[0].uri.fsPath;
+
+          // Create the pipelines folder if it doesn't exist
+          const pipelinesFolderPath = path.join(
+            userFolder as string,
+            "pipelines"
+          );
+          const files = fs.readdirSync(pipelinesFolderPath);
+          files.map((file) => {
+            const pipelineFilePath = path.join(pipelinesFolderPath, `${file}`);
+            const content = fs.readFileSync(pipelineFilePath, {
+              encoding: "utf8",
+            });
+            allPipelinesFiles.push({
+              label: file?.substring(0, file?.lastIndexOf(".")),
+              value: content,
+            });
+          });
+
+          return allPipelinesFiles;
+        };
+
         // Handle messages from the WebView
 
         panel.webview.onDidReceiveMessage(
@@ -58,6 +92,14 @@ export function activate(context: vscode.ExtensionContext) {
 
             if (message.command === "copySuccess") {
               vscode.window.showInformationMessage("Copied successfully!");
+            }
+
+            if (message.command === "getAllPipelines") {
+              const allPipelinesFiles = getAllSavedPipelines();
+              panel?.webview.postMessage({
+                command: "allPipelinesFiles",
+                allPipelinesFiles,
+              });
             }
 
             if (message.command === "copyError") {
@@ -71,10 +113,40 @@ export function activate(context: vscode.ExtensionContext) {
               saveCsvFile(message.queryResults);
             }
 
-            if (message.command === "pipelineSaved") {
-              vscode.window.showInformationMessage(
-                "Pipeline Saved Successfully!"
-              );
+            // if (message.command === "pipelineSaved") {
+            //   vscode.window.showInformationMessage(
+            //     "Pipeline Saved Successfully!"
+            //   );
+            // }
+
+            if (message.command === "savePipeline") {
+              // Get the workspace folders
+
+              checkWorkspace({ workspaceFolders, vscode });
+              // Use the first workspace folder as the target folder
+              //@ts-ignore
+              const userFolder = workspaceFolders[0].uri.fsPath;
+              const fileName = `${message.name}.json`;
+
+              // Create the pipelines folder if it doesn't exist
+              const pipelinesFolderPath = path.join(userFolder, "pipelines");
+              if (!fs.existsSync(pipelinesFolderPath)) {
+                fs.mkdirSync(pipelinesFolderPath);
+              }
+
+              const filePath = path.join(userFolder, "pipelines", fileName);
+
+              fs.writeFile(filePath, message.query, (err) => {
+                if (err) {
+                  vscode.window.showErrorMessage(
+                    `Failed to save file: ${err.message}`
+                  );
+                } else {
+                  vscode.window.showInformationMessage(
+                    `File saved to: ${filePath}`
+                  );
+                }
+              });
             }
 
             await vscode.window.withProgress(
@@ -182,8 +254,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 function getView(js: vscode.Uri, css: vscode.Uri): string {
   return `
-  
-  <!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />

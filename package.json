@@ -2,7 +2,7 @@
   "name": "mongo-playground",
   "displayName": "mongo-playground",
   "description": "MongoDb Aggrigation Playground In your Vscode",
-  "version": "1.0.3",
+  "version": "1.0.32",
   "publisher": "HumedEssie",
   "repository": {
     "url": "https://github.com/Humed-Muhammad/mongo-playground"
@@ -40,6 +40,7 @@
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-accordion": "^1.1.2",
+    "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-popover": "^1.0.7",
     "@radix-ui/react-select": "^2.0.0",
@@ -47,6 +48,7 @@
     "@radix-ui/react-switch": "^1.0.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "cmdk": "^0.2.0",
     "lucide-react": "^0.350.0",
     "mongodb": "^6.4.0",
     "react": "^18.2.0",
