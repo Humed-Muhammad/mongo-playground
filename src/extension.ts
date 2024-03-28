@@ -33,6 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.ViewColumn.One, // Display the panel in the second column
           {
             enableScripts: true, // Enable JavaScript in the WebView
+            retainContextWhenHidden: true,
           }
         );
 
