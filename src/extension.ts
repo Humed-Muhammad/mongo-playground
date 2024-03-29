@@ -197,7 +197,15 @@ export function activate(context: vscode.ExtensionContext) {
                 });
 
                 dbNamesAndCollections.push({
-                  [db.name]: collectionListName,
+                  [db.name]: collectionListName.sort((a, b) => {
+                    if (a > b) {
+                      return 1;
+                    }
+                    if (a < b) {
+                      return -1;
+                    }
+                    return 0;
+                  }),
                 });
               }
             }
@@ -205,7 +213,20 @@ export function activate(context: vscode.ExtensionContext) {
             if (message.command === "MongoDbUrl") {
               panel?.webview.postMessage({
                 command: "dbNameAndCollection",
-                dbNamesAndCollections,
+                dbNamesAndCollections: dbNamesAndCollections?.sort((a, b) => {
+                  // Get the first database name from each object
+                  const dbNameA = Object.keys(a)[0];
+                  const dbNameB = Object.keys(b)[0];
+
+                  // Compare the database names and sort alphabetically
+                  if (dbNameA < dbNameB) {
+                    return -1;
+                  }
+                  if (dbNameA > dbNameB) {
+                    return 1;
+                  }
+                  return 0;
+                }),
               });
             }
 
