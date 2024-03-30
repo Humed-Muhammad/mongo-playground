@@ -21,6 +21,8 @@ export const suggestions = (monaco: any) => {
 
   return [
     { label: "$newField", kind },
+    { label: "$geoNear", kind },
+    { label: "$graphLookup", kind },
     { label: "$count", kind },
     { label: "$collStats", kind },
     { label: "$densify", kind },
@@ -129,6 +131,7 @@ export const suggestions = (monaco: any) => {
       kind,
     },
     { label: "$indexOfCP", kind },
+    { label: "$indexStats", kind },
     { label: "$isArray", kind },
     {
       label: "$isoDayOfWeek",
@@ -142,6 +145,7 @@ export const suggestions = (monaco: any) => {
     { label: "$jsonSchema", kind },
     { label: "$last", kind },
     { label: "$let", kind },
+    { label: "$limit", kind },
     { label: "$literal", kind },
     { label: "$ln", kind },
     { label: "$log", kind },
@@ -152,6 +156,8 @@ export const suggestions = (monaco: any) => {
     { label: "$map", kind },
     { label: "$match", kind },
     { label: "$max", kind },
+    { label: "$merge", kind },
+    { label: "$mergeInto", kind },
     {
       label: "$mergeObjects",
       kind,
@@ -191,6 +197,7 @@ export const suggestions = (monaco: any) => {
     },
     { label: "$round", kind },
     { label: "$rtrim", kind },
+    { label: "$search", kind },
     { label: "$second", kind },
     {
       label: "$setDifference",

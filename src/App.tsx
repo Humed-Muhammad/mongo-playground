@@ -1,4 +1,4 @@
-import Editor from "@monaco-editor/react";
+import Editor, { OnMount } from "@monaco-editor/react";
 import "./global.css";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -145,8 +145,17 @@ function App() {
     editorRef.current = editor;
   };
 
-  const handleAggDidMount = (_editor: any, monaco: any) => {
+  const handleAggDidMount: OnMount = (_editor, monaco) => {
+    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+      validate: false,
+      allowComments: true,
+      trailingCommas: "ignore",
+      schemaValidation: "ignore",
+      schemaRequest: "ignore",
+    });
+
     monaco.languages.registerCompletionItemProvider("json", {
+      //@ts-ignore
       provideCompletionItems: () => {
         // Define your suggestion array
         const allSuggestions = suggestions(monaco);
@@ -156,7 +165,7 @@ function App() {
             let modifiedSuggestions =
               suggestionsAutoFillObject[
                 suggestion.label as keyof typeof suggestionsAutoFillObject
-              ] ?? `"${suggestion.label}":`;
+              ] ?? `${suggestion.label}:`;
 
             return {
               ...suggestion,
