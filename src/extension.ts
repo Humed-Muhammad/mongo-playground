@@ -33,6 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
           vscode.ViewColumn.One, // Display the panel in the second column
           {
             enableScripts: true, // Enable JavaScript in the WebView
+            retainContextWhenHidden: true,
           }
         );
 
@@ -196,7 +197,15 @@ export function activate(context: vscode.ExtensionContext) {
                 });
 
                 dbNamesAndCollections.push({
-                  [db.name]: collectionListName,
+                  [db.name]: collectionListName.sort((a, b) => {
+                    if (a > b) {
+                      return 1;
+                    }
+                    if (a < b) {
+                      return -1;
+                    }
+                    return 0;
+                  }),
                 });
               }
             }
@@ -204,7 +213,20 @@ export function activate(context: vscode.ExtensionContext) {
             if (message.command === "MongoDbUrl") {
               panel?.webview.postMessage({
                 command: "dbNameAndCollection",
-                dbNamesAndCollections,
+                dbNamesAndCollections: dbNamesAndCollections?.sort((a, b) => {
+                  // Get the first database name from each object
+                  const dbNameA = Object.keys(a)[0];
+                  const dbNameB = Object.keys(b)[0];
+
+                  // Compare the database names and sort alphabetically
+                  if (dbNameA < dbNameB) {
+                    return -1;
+                  }
+                  if (dbNameA > dbNameB) {
+                    return 1;
+                  }
+                  return 0;
+                }),
               });
             }
 
@@ -261,7 +283,7 @@ function getView(js: vscode.Uri, css: vscode.Uri): string {
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + Svelte + TS</title>
-   
+    <script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="humedessie" data-description="Support me on Buy me a coffee!" data-message="" data-color="#FF813F" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
     <script type="module"  src="${js}"></script>
     <link rel="stylesheet"  href="${css}">
   </head>

@@ -1,4 +1,4 @@
-import Editor from "@monaco-editor/react";
+import Editor, { OnMount } from "@monaco-editor/react";
 import "./global.css";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -32,6 +32,7 @@ import {
 } from "./components/ui/popover";
 import { Input } from "./components/ui/input";
 import { PipelineSelector } from "./components/PipelineSelector";
+import { suggestionsAutoFillObject } from "./constants/suggetionValues";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -144,17 +145,33 @@ function App() {
     editorRef.current = editor;
   };
 
-  const handleAggDidMount = (_editor: any, monaco: any) => {
+  const handleAggDidMount: OnMount = (_editor, monaco) => {
+    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+      validate: false,
+      allowComments: true,
+      trailingCommas: "ignore",
+      schemaValidation: "ignore",
+      schemaRequest: "ignore",
+    });
+
     monaco.languages.registerCompletionItemProvider("json", {
+      //@ts-ignore
       provideCompletionItems: () => {
         // Define your suggestion array
         const allSuggestions = suggestions(monaco);
 
         return {
-          suggestions: allSuggestions.map((suggestion) => ({
-            ...suggestion,
-            insertText: `"${suggestion.label}":`,
-          })),
+          suggestions: allSuggestions.map((suggestion) => {
+            let modifiedSuggestions =
+              suggestionsAutoFillObject[
+                suggestion.label as keyof typeof suggestionsAutoFillObject
+              ] ?? `${suggestion.label}:`;
+
+            return {
+              ...suggestion,
+              insertText: modifiedSuggestions,
+            };
+          }),
         };
       },
     });
@@ -215,7 +232,6 @@ function App() {
             )}  flex flex-wrap space-x-4 items-center order rounded-none  border-0`}
           >
             <div>
-              <Label className="cursor-pointer">Pipeline name</Label>{" "}
               <Input
                 className={`round-sm ${themeBGColor(settings)} w-32 h-7`}
                 placeholder="Pipeline name"
@@ -226,7 +242,6 @@ function App() {
               />
             </div>
             <div className="flex flex-col">
-              <Label className="mb-1">Select pipeline</Label>{" "}
               {allPipelinesFiles ? (
                 <PipelineSelector
                   settings={settings}

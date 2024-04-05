@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import JSON5 from "json5";
 
 export async function executeAggregationQuery(
   client: MongoClient,
@@ -10,7 +11,7 @@ export async function executeAggregationQuery(
   const collection = db.collection(collectionName);
 
   try {
-    const pipeline = JSON.parse(query);
+    const pipeline = JSON5.parse(query);
     const results = await collection.aggregate(pipeline).toArray();
 
     return results;

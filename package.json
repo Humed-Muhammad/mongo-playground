@@ -2,7 +2,7 @@
   "name": "mongo-playground",
   "displayName": "mongo-playground",
   "description": "MongoDb Aggrigation Playground In your Vscode",
-  "version": "1.0.32",
+  "version": "1.0.37",
   "publisher": "HumedEssie",
   "repository": {
     "url": "https://github.com/Humed-Muhammad/mongo-playground"
@@ -49,6 +49,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
+    "json5": "^2.2.3",
     "lucide-react": "^0.350.0",
     "mongodb": "^6.4.0",
     "react": "^18.2.0",
