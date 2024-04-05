@@ -2,14 +2,22 @@
 
 The Mongo Playground VSCode extension is a tool that allows you to interact with MongoDB databases directly from within Visual Studio Code. It provides a convenient platform for executing MongoDB queries, exploring data, and performing various operations.
 
+## Support Us To continue on improving mongo-playground
+
+![Support](./bmc_qr.png)
+
 ## Previews
+
 ### Split UI
+
 ![PreviewOne](./p11.webp)
 
 ### Autocompletion and Error Messages
+
 ![PreviewTwo](./p33.webp)
 
 ### Light and Dark Theme
+
 ![PreviewThree](./p22.webp)
 ![PreviewThree](./p11.webp)
 
@@ -24,10 +32,12 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 - **Start where you left off**: Just automatically remember where you left off.
 
 ## Todo in the future
+
 - **Database Management**: Create, delete, and manage databases and collections.
 - **Document Manipulation**: Insert, update, and delete documents in your MongoDB collections.
 
 ## Requirements
+
 - An active MongoDB connection.
 
 ## Installation
@@ -45,11 +55,11 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 3. The extension will connect to the MongoDB server.
 4. Write your MongoDB Aggregations in the editor.
 5. View the results in the output panel on the right side.
-7. Explore and interact with the database the setting panel.
+6. Explore and interact with the database the setting panel.
 
 ## Configuration
 
-The Mongo Playground extension provides some minimal but needed configuration options that can be customized to suit your specific needs. It provide its own setting for configuration. 
+The Mongo Playground extension provides some minimal but needed configuration options that can be customized to suit your specific needs. It provide its own setting for configuration.
 
 For example, you can configure the MongoDB connection settings, theme colors, and database selection and collection name selection and mongodb-url.
 
