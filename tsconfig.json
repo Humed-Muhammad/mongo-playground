@@ -4,7 +4,7 @@
     "sourceMap": true,
     "rootDir": "src",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2020", "DOM"],
     "module": "ESNext",
     "skipLibCheck": true,
 

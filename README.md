@@ -2,10 +2,6 @@
 
 The Mongo Playground VSCode extension is a tool that allows you to interact with MongoDB databases directly from within Visual Studio Code. It provides a convenient platform for executing MongoDB queries, exploring data, and performing various operations.
 
-## Support Us To continue on improving mongo-playground
-
-![Support](./bmc_qr.png)
-
 ## Previews
 
 ### Split UI
@@ -70,6 +66,10 @@ We welcome your feedback and contributions to the Mongo Playground extension. If
 ## License
 
 The Mongo Playground VSCode extension is released under the [MIT License](https://opensource.org/licenses/MIT). See the [LICENSE](LICENSE) file for more details.
+
+## Support Us To continue on improving mongo-playground
+
+![Support](./bmc_qr.png)
 
 ---
 

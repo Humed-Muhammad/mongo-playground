@@ -33,6 +33,9 @@ import {
 import { Input } from "./components/ui/input";
 import { PipelineSelector } from "./components/PipelineSelector";
 import { suggestionsAutoFillObject } from "./constants/suggetionValues";
+import { useDispatch, useSelector } from "react-redux";
+import { selectPipelineName } from "./mongoSlice/selector";
+import { actions } from "./mongoSlice";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -40,10 +43,10 @@ const vscode = acquireVsCodeApi();
 function App() {
   const editorRef = useRef(null);
 
-  const webViewSetting = localStorage.getItem("mongodbSettings");
-  const currentQueryValue = localStorage.getItem("currentQuery");
-  const database = localStorage.getItem("dbNameAndCollection");
-  const localPipelineStore = localStorage.getItem("pipelineStore");
+  // const webViewSetting = localStorage.getItem("mongodbSettings");
+  // const currentQueryValue = localStorage.getItem("currentQuery");
+  // const database = localStorage.getItem("dbNameAndCollection");
+  // const localPipelineStore = localStorage.getItem("pipelineStore");
 
   const [dbNamesAndCollections, setDbNamesAndCollections] =
     useState<Array<DatabaseCollection>>();
@@ -54,36 +57,39 @@ function App() {
 
   const [queryResults, setQueryResults] = useState<string>();
   const [currentQuery, setCurrentQuery] = useState<string>("[]");
-  const [pipelineName, setPipelineName] = useState<string>("Untitled");
+  // const [pipelineName, setPipelineName] = useState<string>("Untitled");
+  const pipelineName = useSelector(selectPipelineName);
   const [pipelineStore, setPipelineStore] = useState<PipelineStoreType>({});
 
   const [error, setError] = useState<string | undefined>();
 
+  const dispatch = useDispatch();
+
   /**@EffectStart */
   useEffect(() => {
-    if (database) {
-      const parsedDb = JSON.parse(database);
-      setDbNamesAndCollections(parsedDb);
-    }
+    // if (database) {
+    //   const parsedDb = JSON.parse(database);
+    //   setDbNamesAndCollections(parsedDb);
+    // }
 
-    if (webViewSetting) {
-      const parsedSettings = JSON.parse(webViewSetting);
-      setSettings(parsedSettings);
-    }
+    // if (webViewSetting) {
+    //   const parsedSettings = JSON.parse(webViewSetting);
+    //   setSettings(parsedSettings);
+    // }
 
-    if (localPipelineStore) {
-      const parsedLocalPipelineStore = JSON.parse(localPipelineStore);
-      setPipelineStore(parsedLocalPipelineStore);
-    }
+    // if (localPipelineStore) {
+    //   const parsedLocalPipelineStore = JSON.parse(localPipelineStore);
+    //   setPipelineStore(parsedLocalPipelineStore);
+    // }
 
     vscode.postMessage({
       command: "getAllPipelines",
     });
 
-    if (currentQueryValue) {
-      const parsedCurrentQuery = JSON.parse(currentQueryValue);
-      setCurrentQuery(parsedCurrentQuery);
-    }
+    // if (currentQueryValue) {
+    //   const parsedCurrentQuery = JSON.parse(currentQueryValue);
+    //   setCurrentQuery(parsedCurrentQuery);
+    // }
   }, []);
 
   useEffect(() => {
@@ -237,7 +243,7 @@ function App() {
                 placeholder="Pipeline name"
                 value={pipelineName}
                 onChange={(e) => {
-                  setPipelineName(e.target.value);
+                  dispatch(actions.setPipelineName(e.target.value));
                 }}
               />
             </div>
