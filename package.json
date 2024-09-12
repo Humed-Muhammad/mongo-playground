@@ -13,9 +13,35 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onView:mongoPlayground",
+    "onCommand:mongoPlayground"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mongo-playground",
+          "title": "Mongo Playground",
+          "icon": "./icon.png"
+        }
+      ]
+    },
+    "views": {
+      "mongo-playground": [
+        {
+          "id": "mongoPlayground",
+          "name": "Mongo Playground"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "mongoPlayground",
+        "contents": "Open Mongo Playground\n[Open](command:mongoPlayground)"
+      }
+    ],
     "commands": [
       {
         "command": "mongoPlayground",

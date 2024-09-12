@@ -7,6 +7,7 @@ import type {
   PipelineStoreType,
   Settings,
 } from "@/types";
+import { settingsInitial } from "@/constants";
 const webViewSetting = localStorage.getItem("mongodbSettings");
 const currentQueryValue = localStorage.getItem("currentQuery");
 const database = localStorage.getItem("dbNameAndCollection");
@@ -24,8 +25,8 @@ export interface MongoSliceQuery {
 }
 
 const initialState: MongoSliceQuery = {
-  dbNamesAndCollections: JSON.parse(database ?? "{}"),
-  settings: JSON.parse(webViewSetting ?? "{}"),
+  dbNamesAndCollections: JSON.parse(database ?? "[]"),
+  settings: JSON.parse(webViewSetting ?? "{}")?? settingsInitial,
   pipelineStore: JSON.parse(localPipelineStore ?? "{}"),
   currentQuery: JSON.parse(currentQueryValue ?? "[]"),
   allPipelinesFiles: [],
@@ -42,6 +43,30 @@ export const counterSlice = createSlice({
     setPipelineName: (state, action: PayloadAction<string>) => {
       state.pipelineName = action.payload;
     },
+    setCurrentQuery: (state, action: PayloadAction<string>) => {
+      state.currentQuery = action.payload;
+    },
+    setSettings: (state, action: PayloadAction<Partial<Settings>>) => {
+      state.settings = {...state.settings, ...action.payload};
+    },
+    setQueryResults: (state, action: PayloadAction<string>) => {
+      state.queryResults = action.payload;
+    },
+    setPipelineStore: (state, action: PayloadAction<PipelineStoreType>) => {
+      state.pipelineStore = {...state.pipelineStore, ...action.payload};
+    },
+    setDbNamesAndCollections: (
+      state,
+      action: PayloadAction<DatabaseCollection[]>
+    ) => {
+      state.dbNamesAndCollections = action.payload;
+    },
+    setError: (state, action: PayloadAction<string | undefined>) => {
+      state.error = action.payload;
+    },
+    setAllPipelinesFiles: (state, action: PayloadAction<AllPipelinesType[]>) => {
+      state.allPipelinesFiles = action.payload;
+    }
   },
 });
 

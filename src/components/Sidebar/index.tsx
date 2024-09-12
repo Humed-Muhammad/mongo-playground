@@ -1,11 +1,4 @@
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardHeader } from "../ui/card";
 import {
   Accordion,
@@ -24,10 +17,10 @@ import { settingsInitial, themeBGColor } from "@/constants";
 
 interface Props {
   vscode: any;
-  settings: Settings;
-  setSettings: Dispatch<SetStateAction<Settings>>;
+  settings: Partial<Settings>;
+  setSettings: (settings: Partial<Settings>) => void;
   dbNamesAndCollections: DatabaseCollection[] | undefined;
-  setError: Dispatch<SetStateAction<string | undefined>>;
+  setError: (value: string | undefined) => void;
 }
 
 export const Sidebar = ({
@@ -37,19 +30,24 @@ export const Sidebar = ({
   setError,
   settings,
 }: Props) => {
-  const [url, setUrl] = useState(settingsInitial.url);
+  const [url, setUrl] = useState<string | undefined>(settingsInitial.url);
   const [selectedAccordion, setSelectedAccordion] = useState<
     string | undefined
   >(undefined);
   const [selectedCollection, setSelectedCollection] = useState<
     string | undefined
   >(undefined);
+  const sendMOngoDbUrlMessage = useCallback(() => {
+    if (url) {
+      vscode?.postMessage({
+        command: "MongoDbUrl",
+        url,
+      });
+    }
+  }, [url]);
   useEffect(() => {
-    vscode?.postMessage({
-      command: "MongoDbUrl",
-      url,
-    });
-  }, []);
+    sendMOngoDbUrlMessage();
+  }, [sendMOngoDbUrlMessage]);
 
   const isSelected = useCallback(
     (collection: string) => {
@@ -59,14 +57,16 @@ export const Sidebar = ({
   );
 
   useEffect(() => {
-    setUrl(settings.url);
+    if (settings.url) {
+      setUrl(settings.url);
+    }
   }, [settings.url]);
 
   const getDbAndCol = useMemo(() => {
     let dbNameIndex = 0;
     if (dbNamesAndCollections) {
       dbNamesAndCollections.forEach((entry, index) => {
-        if (entry[settings.dbName]) {
+        if (entry[settings.dbName as string]) {
           dbNameIndex = index;
         }
       });
@@ -91,9 +91,9 @@ export const Sidebar = ({
                 className="text-gray-200"
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    setSettings((prev) => ({ ...prev, theme: "vs-dark" }));
+                    setSettings({ theme: "vs-dark" });
                   } else {
-                    setSettings((prev) => ({ ...prev, theme: "vs-light" }));
+                    setSettings({ theme: "vs-light" });
                   }
                 }}
                 checked={settings.theme === "vs-dark"}
@@ -112,7 +112,7 @@ export const Sidebar = ({
             />
             <Button
               onClick={() => {
-                setSettings((prev) => ({ ...prev, url }));
+                setSettings({ url });
                 vscode.postMessage({
                   command: "MongoDbUrl",
                   url,
@@ -142,12 +142,11 @@ export const Sidebar = ({
               value={`item-${id}`}
             >
               <AccordionTrigger
-                className="hover:bg-gray-100 h-8 hover:text-gray-700 p-2 mb-3"
+                className="hover:opacity-25 p-2 mb-3"
                 onClick={() => {
-                  setSettings((prev) => ({
-                    ...prev,
+                  setSettings({
                     dbName: Object.keys(db)[0],
-                  }));
+                  });
                 }}
               >
                 <div className="flex items-center space-x-2">
@@ -160,15 +159,14 @@ export const Sidebar = ({
                   <Button
                     className={`w-full justify-start ${
                       isSelected(collectionName)
-                        ? "bg-gray-200 text-gray-600"
+                        ? "bg-gray-600 text-gray-50"
                         : ""
-                    } hover:opacity-25 space-x-2`}
+                    } hover:opacity-25 space-x-2 ml-3`}
                     variant="ghost"
                     onClick={() => {
-                      setSettings((prev) => ({
-                        ...prev,
+                      setSettings({
                         collectionName,
-                      }));
+                      });
                       setSelectedCollection(collectionName);
                     }}
                   >

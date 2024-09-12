@@ -21,10 +21,10 @@ import { themeBGColor } from "@/constants";
 
 interface Props {
   options: AllPipelinesType[];
-  settings: Settings;
+  settings: Partial<Settings>;
   pipelineStore: PipelineStoreType;
   pipelineKey: string;
-  setSettings: React.Dispatch<React.SetStateAction<Settings>>;
+  setSettings: (settings:Partial<Settings>) => void;
 }
 
 export function PipelineSelector({
@@ -49,7 +49,7 @@ export function PipelineSelector({
   }, [JSON.stringify(pipelineStore), pipelineKey, JSON.stringify(options)]);
 
   React.useEffect(() => {
-    setSettings((prev) => ({ ...prev, query: value ?? "[]" }));
+    setSettings({query: value ?? "[]" })
   }, [value]);
 
   return (

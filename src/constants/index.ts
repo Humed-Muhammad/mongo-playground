@@ -1,11 +1,11 @@
 import { Settings } from "@/types";
 
-export const themeBGColor = (settings: Settings) =>
+export const themeBGColor = (settings: Partial<Settings>) =>
   settings.theme === "vs-dark"
     ? "bg-[#1E1E1E] text-white"
     : "bg-white text-gray-700";
 
-export const themeTextColor = (settings: Settings) =>
+export const themeTextColor = (settings: Partial<Settings>) =>
   settings.theme === "vs-dark" ? "text-white" : "text-[#1E1E1E]";
 
 export const settingsInitial: Settings = {
@@ -13,7 +13,7 @@ export const settingsInitial: Settings = {
   dbName: "test",
   query: "[]",
   theme: "vs-dark",
-  url: "mongodb://localhost:27017",
+  url: "mongodb://127.0.0.1:27017",
 };
 
 export const suggestions = (monaco: any) => {

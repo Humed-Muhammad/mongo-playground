@@ -7,7 +7,7 @@ import { saveCsvFile, saveJsonFile } from "./helpers";
 import { checkWorkspace } from "./lib/utils";
 import { AllPipelinesType } from "./types";
 
-const getMongoClient = (url: string) => {
+const getMongoClient = (url: string): Promise<MongoClient> => {
   try {
     const client = new MongoClient(url);
     return client.connect();
@@ -66,9 +66,12 @@ export function activate(context: vscode.ExtensionContext) {
 
           // Create the pipelines folder if it doesn't exist
           const pipelinesFolderPath = path.join(
-            userFolder as string,
+            (userFolder ?? "") as string,
             "pipelines"
           );
+          if (!fs.existsSync(pipelinesFolderPath)) {
+            fs.mkdirSync(pipelinesFolderPath);
+          }
           const files = fs.readdirSync(pipelinesFolderPath);
           files.map((file) => {
             const pipelineFilePath = path.join(pipelinesFolderPath, `${file}`);
@@ -85,12 +88,10 @@ export function activate(context: vscode.ExtensionContext) {
         };
 
         // Handle messages from the WebView
+        let client: MongoClient;
 
         panel.webview.onDidReceiveMessage(
           async (message) => {
-            const aggregationQuery = message.query;
-            let client: MongoClient;
-
             if (message.command === "copySuccess") {
               vscode.window.showInformationMessage("Copied successfully!");
             }
@@ -99,7 +100,7 @@ export function activate(context: vscode.ExtensionContext) {
               const allPipelinesFiles = getAllSavedPipelines();
               panel?.webview.postMessage({
                 command: "allPipelinesFiles",
-                allPipelinesFiles,
+                allPipelinesFiles: allPipelinesFiles ?? [],
               });
             }
 
@@ -150,67 +151,66 @@ export function activate(context: vscode.ExtensionContext) {
               });
             }
 
-            await vscode.window.withProgress(
-              {
-                location: vscode.ProgressLocation.Notification,
-                cancellable: false,
-                title:
-                  message.command === "MongoDbUrl"
-                    ? "Connecting to MongoDB"
-                    : "",
-              },
-
-              async () => {
-                await getMongoClient(message.url)
-                  .then((cl) => {
-                    client = cl;
-                    message.command === "MongoDbUrl" &&
-                      vscode.window.showInformationMessage(
-                        "Connected to MongoDB successfully!"
-                      );
-                  })
-                  .catch((error) => {
-                    message.command === "MongoDbUrl" &&
-                      vscode.window.showErrorMessage(
-                        `Failed to connect to MongoDB: ${error.message}`
-                      );
-                  });
-              }
-            );
-
-            //@ts-ignore
-            const adminDb = client?.db("admin");
-            const databaseList = await adminDb?.admin()?.listDatabases();
-            const dbNamesAndCollections: Array<{ [dbName: string]: string[] }> =
-              [];
-            if (databaseList) {
-              // Get the list of collections in each database
-              for (const db of databaseList.databases) {
-                //@ts-ignore
-                const dbInstance = client?.db(db.name);
-                const collectionList = await dbInstance
-                  .listCollections()
-                  .toArray();
-                const collectionListName: Array<string> = [];
-                collectionList.forEach((collection) => {
-                  collectionListName.push(collection.name);
-                });
-
-                dbNamesAndCollections.push({
-                  [db.name]: collectionListName.sort((a, b) => {
-                    if (a > b) {
-                      return 1;
-                    }
-                    if (a < b) {
-                      return -1;
-                    }
-                    return 0;
-                  }),
-                });
-              }
-            }
-
             if (message.command === "MongoDbUrl") {
+              await vscode.window.withProgress(
+                {
+                  location: vscode.ProgressLocation.Notification,
+                  cancellable: false,
+                  title: "Connecting to MongoDB",
+                },
+
+                async () => {
+                  if (message.command === "MongoDbUrl") {
+                    await getMongoClient(message.url)
+                      .then((mongoClient) => {
+                        client = mongoClient;
+
+                        vscode.window.showInformationMessage(
+                          "Connected to MongoDB successfully!"
+                        );
+                      })
+                      .catch((error) => {
+                        console.error("MongoDB connection error:", error);
+                        vscode.window.showErrorMessage(
+                          `Failed to connect to MongoDB: ${error.message}\nStack: ${error.stack}`
+                        );
+                      });
+                  }
+                }
+              );
+
+              //@ts-ignore
+              const adminDb = client?.db("admin");
+              const databaseList = await adminDb?.admin()?.listDatabases();
+              const dbNamesAndCollections: Array<{
+                [dbName: string]: string[];
+              }> = [];
+              if (databaseList) {
+                // Get the list of collections in each database
+                for (const db of databaseList.databases) {
+                  //@ts-ignore
+                  const dbInstance = client?.db(db.name);
+                  const collectionList = await dbInstance
+                    .listCollections()
+                    .toArray();
+                  const collectionListName: Array<string> = [];
+                  collectionList.forEach((collection) => {
+                    collectionListName.push(collection.name);
+                  });
+
+                  dbNamesAndCollections.push({
+                    [db.name]: collectionListName.sort((a, b) => {
+                      if (a > b) {
+                        return 1;
+                      }
+                      if (a < b) {
+                        return -1;
+                      }
+                      return 0;
+                    }),
+                  });
+                }
+              }
               panel?.webview.postMessage({
                 command: "dbNameAndCollection",
                 dbNamesAndCollections: dbNamesAndCollections?.sort((a, b) => {
@@ -231,9 +231,9 @@ export function activate(context: vscode.ExtensionContext) {
             }
 
             if (message.command === "executeQuery") {
+              const aggregationQuery = message.query;
               executeAggregationQuery(
-                //@ts-ignore
-                client,
+                message.url,
                 aggregationQuery,
                 message.dbName,
                 message.collectionName

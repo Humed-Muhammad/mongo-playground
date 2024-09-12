@@ -1,13 +1,8 @@
 import Editor, { OnMount } from "@monaco-editor/react";
 import "./global.css";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  AllPipelinesType,
-  DatabaseCollection,
-  PipelineStoreType,
-  Settings,
-} from "./types";
+import { useEffect, useMemo, useRef } from "react";
+import type { Settings } from "./types";
 import { Sidebar } from "./components/Sidebar";
 import { Button } from "./components/ui/button";
 import {
@@ -17,12 +12,7 @@ import {
   FolderDown,
   Save,
 } from "lucide-react";
-import {
-  settingsInitial,
-  suggestions,
-  themeBGColor,
-  themeTextColor,
-} from "./constants";
+import { suggestions, themeBGColor, themeTextColor } from "./constants";
 import { Card } from "./components/ui/card";
 import { Label } from "./components/ui/label";
 import {
@@ -34,8 +24,18 @@ import { Input } from "./components/ui/input";
 import { PipelineSelector } from "./components/PipelineSelector";
 import { suggestionsAutoFillObject } from "./constants/suggetionValues";
 import { useDispatch, useSelector } from "react-redux";
-import { selectPipelineName } from "./mongoSlice/selector";
+import {
+  selectAllPipelinesFiles,
+  selectCurrentQuery,
+  selectDbNamesAndCollections,
+  selectError,
+  selectPipelineName,
+  selectPipelineStore,
+  selectQueryResults,
+  selectSettings,
+} from "./mongoSlice/selector";
 import { actions } from "./mongoSlice";
+import { useEventListener } from "./hooks/useEventListener";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
@@ -43,53 +43,29 @@ const vscode = acquireVsCodeApi();
 function App() {
   const editorRef = useRef(null);
 
-  // const webViewSetting = localStorage.getItem("mongodbSettings");
-  // const currentQueryValue = localStorage.getItem("currentQuery");
-  // const database = localStorage.getItem("dbNameAndCollection");
-  // const localPipelineStore = localStorage.getItem("pipelineStore");
-
-  const [dbNamesAndCollections, setDbNamesAndCollections] =
-    useState<Array<DatabaseCollection>>();
-  const [settings, setSettings] = useState<Settings>(settingsInitial);
-  const [allPipelinesFiles, setAllPipelinesFiles] = useState<
-    AllPipelinesType[]
-  >([]);
-
-  const [queryResults, setQueryResults] = useState<string>();
-  const [currentQuery, setCurrentQuery] = useState<string>("[]");
-  // const [pipelineName, setPipelineName] = useState<string>("Untitled");
+  const dbNamesAndCollections = useSelector(selectDbNamesAndCollections);
+  const allPipelinesFiles = useSelector(selectAllPipelinesFiles);
+  const settings = useSelector(selectSettings);
+  const queryResults = useSelector(selectQueryResults);
   const pipelineName = useSelector(selectPipelineName);
-  const [pipelineStore, setPipelineStore] = useState<PipelineStoreType>({});
-
-  const [error, setError] = useState<string | undefined>();
+  const currentQuery = useSelector(selectCurrentQuery);
+  const pipelineStore = useSelector(selectPipelineStore);
+  const error = useSelector(selectError);
+  const setSettings = (settings: Partial<Settings>) => {
+    dispatch(actions.setSettings(settings));
+  };
+  const setError = (error: string | undefined) => {
+    dispatch(actions.setError(error));
+  };
 
   const dispatch = useDispatch();
 
   /**@EffectStart */
   useEffect(() => {
-    // if (database) {
-    //   const parsedDb = JSON.parse(database);
-    //   setDbNamesAndCollections(parsedDb);
-    // }
-
-    // if (webViewSetting) {
-    //   const parsedSettings = JSON.parse(webViewSetting);
-    //   setSettings(parsedSettings);
-    // }
-
-    // if (localPipelineStore) {
-    //   const parsedLocalPipelineStore = JSON.parse(localPipelineStore);
-    //   setPipelineStore(parsedLocalPipelineStore);
-    // }
-
     vscode.postMessage({
       command: "getAllPipelines",
     });
-
-    // if (currentQueryValue) {
-    //   const parsedCurrentQuery = JSON.parse(currentQueryValue);
-    //   setCurrentQuery(parsedCurrentQuery);
-    // }
+    setSettings({ query: currentQuery });
   }, []);
 
   useEffect(() => {
@@ -108,37 +84,7 @@ function App() {
       ...settings,
     });
   }, [JSON.stringify(settings)]);
-
-  useEffect(() => {
-    window.addEventListener("message", (event) => {
-      const message = event.data;
-      if (message.command === "dbNameAndCollection") {
-        setDbNamesAndCollections(message.dbNamesAndCollections);
-        localStorage.setItem(
-          "dbNameAndCollection",
-          JSON.stringify(message.dbNamesAndCollections)
-        );
-      }
-      if (message.command === "queryResults") {
-        if (message.error) {
-          setError(message.error);
-        } else {
-          setError(undefined);
-
-          setQueryResults(JSON.stringify(message.results.slice(0, 20)));
-        }
-      }
-      if (message.command === "allPipelinesFiles") {
-        setAllPipelinesFiles(message.allPipelinesFiles);
-      }
-    });
-
-    return () => {
-      window.removeEventListener("message", () => {
-        console.info("Event Removed Because Component Unmounted");
-      });
-    };
-  }, []);
+  useEventListener();
 
   useEffect(() => {
     localStorage.setItem("pipelineStore", JSON.stringify(pipelineStore));
@@ -200,10 +146,7 @@ function App() {
   );
 
   const savePipeline = (auto?: boolean) => {
-    setPipelineStore((prev) => ({
-      ...prev,
-      [pipelineKey]: pipelineName,
-    }));
+    dispatch(actions.setPipelineStore({ [pipelineKey]: pipelineName }));
     vscode.postMessage({
       command: "savePipeline",
       query: settings.query,
@@ -239,7 +182,7 @@ function App() {
           >
             <div>
               <Input
-                className={`round-sm ${themeBGColor(settings)} w-32 h-7`}
+                className={`${themeBGColor(settings)} w-40 h-7`}
                 placeholder="Pipeline name"
                 value={pipelineName}
                 onChange={(e) => {
@@ -284,11 +227,11 @@ function App() {
           <Editor
             height="100%"
             defaultLanguage="json"
-            value={settings.query || currentQuery}
+            value={settings.query}
             width="100%"
             theme={settings.theme}
             onChange={(query) => {
-              setSettings((prev) => ({ ...prev, query }));
+              setSettings({ query });
               localStorage.setItem("currentQuery", JSON.stringify(query));
             }}
             options={{
