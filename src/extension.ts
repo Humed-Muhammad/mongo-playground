@@ -36,6 +36,9 @@ export function activate(context: vscode.ExtensionContext) {
             retainContextWhenHidden: true,
           }
         );
+        vscode.window.terminals.forEach((terminal) => {
+          terminal.hide();
+        });
 
         const scriptUri = panel.webview.asWebviewUri(
           vscode.Uri.file(
