@@ -6,16 +6,16 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 
 ### Split UI
 
-![PreviewOne](./p11.webp)
+![PreviewOne](./p11.png)
 
 ### Autocompletion and Error Messages
 
-![PreviewTwo](./p33.webp)
+![PreviewTwo](./p33.png)
 
 ### Light and Dark Theme
 
-![PreviewThree](./p22.webp)
-![PreviewThree](./p11.webp)
+![PreviewThree](./p22.png)
+![PreviewThree](./p11.png)
 
 ## Features
 
@@ -26,6 +26,8 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 - **Save Pipeline**: Save the pipeline or aggregation pipeline you created.
 - **Simple yet powerful UX**: Simply what you need no other extra unnecessary features.
 - **Start where you left off**: Just automatically remember where you left off.
+- **Copy Pipeline**: Copy your pipeline and pasted in your code.
+- **Export Pipeline Result To JSON Or CSV**: Export your pipeline result and save it to JSON or CSV file.
 
 ## Todo in the future
 
@@ -46,12 +48,11 @@ The Mongo Playground VSCode extension is a tool that allows you to interact with
 
 ## Usage
 
-1. Open the Command Palette by pressing Ctrl+Shift+P (Windows/Linux) or Cmd+Shift+P (Mac).
-2. Search for and select the "**Mongo Playground**" command and hit **Enter** or **Select it using your mouse** ":)".
-3. The extension will connect to the MongoDB server.
-4. Write your MongoDB Aggregations in the editor.
-5. View the results in the output panel on the right side.
-6. Explore and interact with the database the setting panel.
+1. Open the playground from the activity bar Icon or from the command pallette.
+2. The extension will connect to the MongoDB server.
+3. Write your MongoDB Aggregations in the editor.
+4. View the results in the output panel on the right side.
+5. Explore and interact with the database the setting panel.
 
 ## Configuration
 
