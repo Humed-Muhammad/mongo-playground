@@ -225,7 +225,7 @@ function App() {
             defaultLanguage="json"
             value={settings.query}
             width="100%"
-            theme={settings.theme}
+            theme={settings.theme ?? "vs-dark"}
             onChange={(query) => {
               setSettings({ query });
               localStorage.setItem("currentQuery", JSON.stringify(query));
@@ -292,7 +292,7 @@ function App() {
             defaultLanguage="json"
             defaultValue="[]"
             width="100%"
-            theme={settings.theme}
+            theme={settings.theme ?? "vs-dark"}
             options={{
               lineNumbers: "off",
               // readOnly: true,
