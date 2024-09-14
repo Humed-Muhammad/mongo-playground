@@ -12,7 +12,7 @@ import {
   FolderDown,
   Save,
 } from "lucide-react";
-import { suggestions, themeBGColor, themeTextColor } from "./constants";
+import { suggestions, themeBGColor } from "./constants";
 import { Card } from "./components/ui/card";
 import { Label } from "./components/ui/label";
 import {
@@ -182,7 +182,7 @@ function App() {
           >
             <div>
               <Input
-                className={`${themeBGColor(settings)} w-40 h-7`}
+                className={`w-40 h-7`}
                 placeholder="Pipeline name"
                 value={pipelineName}
                 onChange={(e) => {
@@ -206,9 +206,7 @@ function App() {
                 savePipeline();
               }}
               variant="ghost"
-              className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
-                settings
-              )} hover:text-gray-500`}
+              className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm`}
             >
               <Label className="cursor-pointer">Save Pipeline</Label>{" "}
               <Save size={18} />
@@ -217,9 +215,7 @@ function App() {
             <Button
               onClick={copyToClipboard}
               variant="ghost"
-              className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
-                settings
-              )} hover:text-gray-500`}
+              className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm`}
             >
               <Label className="cursor-pointer">Copy</Label> <Copy size={18} />
             </Button>
@@ -260,25 +256,19 @@ function App() {
               <PopoverTrigger>
                 <Button
                   variant="ghost"
-                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
-                    settings
-                  )} hover:text-gray-500`}
+                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm`}
                 >
                   <Label className="cursor-pointer">Export</Label>{" "}
                   <FolderDown size={18} />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent
-                className={`w-auto p-3 flex flex-col ${themeBGColor(settings)}`}
-              >
+              <PopoverContent className={`w-auto p-3 flex flex-col`}>
                 <Button
                   onClick={() => {
                     vscode.postMessage({ command: "saveJSON", queryResults });
                   }}
                   variant="ghost"
-                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
-                    settings
-                  )} hover:text-gray-500`}
+                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm`}
                 >
                   <Label className="cursor-pointer">JSON</Label>{" "}
                   <FileJson size={18} />
@@ -288,9 +278,7 @@ function App() {
                     vscode.postMessage({ command: "saveCSV", queryResults });
                   }}
                   variant="ghost"
-                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm ${themeTextColor(
-                    settings
-                  )} hover:text-gray-500`}
+                  className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm`}
                 >
                   <Label className="cursor-pointer">CSV</Label>{" "}
                   <FileSpreadsheet size={18} />

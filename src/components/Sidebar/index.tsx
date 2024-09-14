@@ -13,7 +13,8 @@ import { Label } from "../ui/label";
 import { Database, Folder, Moon, Sun } from "lucide-react";
 
 import { Switch } from "../ui/switch";
-import { settingsInitial, themeBGColor } from "@/constants";
+import { settingsInitial } from "@/constants";
+// import { CreateDatabase } from "../CreateDatabase";
 
 interface Props {
   vscode: any;
@@ -31,6 +32,7 @@ export const Sidebar = ({
   settings,
 }: Props) => {
   const [url, setUrl] = useState<string | undefined>(settingsInitial.url);
+
   const [selectedAccordion, setSelectedAccordion] = useState<
     string | undefined
   >(undefined);
@@ -78,9 +80,7 @@ export const Sidebar = ({
   return (
     <div>
       <Card
-        className={` overflow-y-scroll h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 border-r-slate-600 ${themeBGColor(
-          settings
-        )} p-4 shadow-none`}
+        className={` overflow-y-scroll h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 p-4 shadow-none`}
       >
         <div className="mb-3 flex flex-col space-y-3">
           <div className="flex items-center justify-between">
@@ -104,9 +104,7 @@ export const Sidebar = ({
           <div className="flex flex-col w-full items-center justify-between space-y-3">
             <Input
               value={url}
-              className={`h-8 rounded-sm ${
-                settings.theme === "vs-dark" ? "bg-gray-300" : "bg-gray-400"
-              } text-gray-800`}
+              className={`h-8 rounded-sm w-full`}
               placeholder="MongoDb URL"
               onChange={(e) => setUrl(e.target.value)}
             />
@@ -119,12 +117,16 @@ export const Sidebar = ({
                 });
                 setError(undefined);
               }}
-              className="bg-blue-500 rounded-sm h-8 w-full hover:bg-blue-400"
+              className="w-full"
+              variant="secondary"
             >
               Apply
             </Button>
           </div>
         </div>
+        {/* <div className="w-full flex items-center">
+          <CreateDatabase vscode={vscode} />
+        </div> */}
         <CardHeader className="text-left w-full p-0 text-lg mb-3">
           Database List
         </CardHeader>

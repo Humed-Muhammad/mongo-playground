@@ -6,6 +6,7 @@ import fs from "fs";
 import { saveCsvFile, saveJsonFile } from "./helpers";
 import { checkWorkspace } from "./lib/utils";
 import { AllPipelinesType } from "./types";
+import { createNewDatabase } from "./utils";
 
 const getMongoClient = (url: string): Promise<MongoClient> => {
   try {
@@ -39,6 +40,8 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.terminals.forEach((terminal) => {
           terminal.hide();
         });
+        // close the activity bar
+        vscode.commands.executeCommand("workbench.action.closeSidebar");
 
         const scriptUri = panel.webview.asWebviewUri(
           vscode.Uri.file(
@@ -95,6 +98,13 @@ export function activate(context: vscode.ExtensionContext) {
 
         panel.webview.onDidReceiveMessage(
           async (message) => {
+            if (message.command === "createNewDatabase") {
+              createNewDatabase({
+                dataBaseName: message.dataBaseName,
+                url: message.url,
+              });
+            }
+
             if (message.command === "copySuccess") {
               vscode.window.showInformationMessage("Copied successfully!");
             }

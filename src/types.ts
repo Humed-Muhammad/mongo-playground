@@ -2,7 +2,7 @@ import type { MongoClient } from "mongodb";
 
 export interface Settings {
   url: string;
-  theme: string;
+  theme: "vs-dark" | "vs-light";
   dbName: string;
   collectionName: string;
   query: string | undefined;

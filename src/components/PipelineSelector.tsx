@@ -17,19 +17,17 @@ import {
 } from "@/components/ui/popover";
 import { AllPipelinesType, PipelineStoreType, Settings } from "@/types";
 import { CheckIcon, ChevronsUpDown } from "lucide-react";
-import { themeBGColor } from "@/constants";
 
 interface Props {
   options: AllPipelinesType[];
   settings: Partial<Settings>;
   pipelineStore: PipelineStoreType;
   pipelineKey: string;
-  setSettings: (settings:Partial<Settings>) => void;
+  setSettings: (settings: Partial<Settings>) => void;
 }
 
 export function PipelineSelector({
   options,
-  settings,
   pipelineStore,
   pipelineKey,
   setSettings,
@@ -49,7 +47,7 @@ export function PipelineSelector({
   }, [JSON.stringify(pipelineStore), pipelineKey, JSON.stringify(options)]);
 
   React.useEffect(() => {
-    setSettings({query: value ?? "[]" })
+    setSettings({ query: value ?? "[]" });
   }, [value]);
 
   return (
@@ -59,7 +57,7 @@ export function PipelineSelector({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={`w-[200px] justify-between h-7 ${themeBGColor(settings)}`}
+          className={`w-[200px] justify-between h-7`}
         >
           {value
             ? options?.find((pipeline) => pipeline?.value === value)?.label
