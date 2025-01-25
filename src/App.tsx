@@ -36,13 +36,20 @@ import {
 } from "./mongoSlice/selector";
 import { actions } from "./mongoSlice";
 import { useEventListener } from "./hooks/useEventListener";
+import { useGoogleAnalytics } from "./hooks/useGoogleAnalytics";
 
 //@ts-ignore
 const vscode = acquireVsCodeApi();
 
 function App() {
   const editorRef = useRef(null);
-
+  const {
+    analytics,
+    handleEditorChange,
+    handleCopy,
+    handleSavePipeline,
+    handleExport,
+  } = useGoogleAnalytics();
   const dbNamesAndCollections = useSelector(selectDbNamesAndCollections);
   const allPipelinesFiles = useSelector(selectAllPipelinesFiles);
   const settings = useSelector(selectSettings);
@@ -66,6 +73,7 @@ function App() {
       command: "getAllPipelines",
     });
     setSettings({ query: currentQuery });
+    analytics?.page();
   }, []);
 
   useEffect(() => {
@@ -138,6 +146,7 @@ function App() {
       .catch((error) => {
         vscode.postMessage({ command: "copyError", error: error.message });
       });
+    handleCopy();
   }
 
   const pipelineKey = useMemo(
@@ -162,6 +171,7 @@ function App() {
     if (!auto) {
       vscode.postMessage({ command: "pipelineSaved" });
     }
+    handleSavePipeline();
   };
 
   return (
@@ -229,6 +239,7 @@ function App() {
             onChange={(query) => {
               setSettings({ query });
               localStorage.setItem("currentQuery", JSON.stringify(query));
+              handleEditorChange();
             }}
             options={{
               tabSize: 2,
@@ -266,6 +277,7 @@ function App() {
                 <Button
                   onClick={() => {
                     vscode.postMessage({ command: "saveJSON", queryResults });
+                    handleExport();
                   }}
                   variant="ghost"
                   className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm`}
@@ -276,6 +288,7 @@ function App() {
                 <Button
                   onClick={() => {
                     vscode.postMessage({ command: "saveCSV", queryResults });
+                    handleExport();
                   }}
                   variant="ghost"
                   className={`top-4 h-auto space-x-1 right-2 p-2 rounded-sm`}

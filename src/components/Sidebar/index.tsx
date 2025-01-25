@@ -14,6 +14,7 @@ import { Database, Folder, Moon, Sun } from "lucide-react";
 
 import { Switch } from "../ui/switch";
 import { settingsInitial } from "@/constants";
+import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
 // import { CreateDatabase } from "../CreateDatabase";
 
 interface Props {
@@ -32,6 +33,7 @@ export const Sidebar = ({
   settings,
 }: Props) => {
   const [url, setUrl] = useState<string | undefined>(settingsInitial.url);
+  const { handleConnectToDb } = useGoogleAnalytics();
 
   const [selectedAccordion, setSelectedAccordion] = useState<
     string | undefined
@@ -45,6 +47,7 @@ export const Sidebar = ({
         command: "MongoDbUrl",
         url,
       });
+      handleConnectToDb();
     }
   }, [url]);
   useEffect(() => {
@@ -80,7 +83,7 @@ export const Sidebar = ({
   return (
     <div>
       <Card
-        className={` overflow-y-scroll h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 p-4 shadow-none`}
+        className={`relative overflow-y-auto h-full flex w-72 flex-col items-center rounded-none border-b-0 border-l-0 border-r border-t-0 p-4 shadow-none`}
       >
         <div className="mb-3 flex flex-col space-y-3">
           <div className="flex items-center justify-between">
@@ -180,6 +183,10 @@ export const Sidebar = ({
             </AccordionItem>
           ))}
         </Accordion>
+        <div className="fixed bottom-1 p-2">
+          <p>Product of FileZillow</p>
+          <p>contact@filezillow.com</p>
+        </div>
       </Card>
     </div>
   );
