@@ -13,31 +13,27 @@ export const useGoogleAnalytics = () => {
   });
 
   const handleEditorChange = () => {
-    analytics?.track("Editor Changed", {
+    analytics?.track("editor_changed", {
       value: true,
     });
   };
 
   const handleConnectToDb = () => {
-    analytics?.track("Connect To DB", {
-      value: true,
-    });
+    analytics?.track("connect_to_db", { value: true });
   };
 
   const handleCopy = () => {
-    analytics?.track("Copy", {
-      value: true,
-    });
+    analytics?.track("copy", { value: true });
   };
 
   const handleExport = () => {
-    analytics?.track("Export Results", {
+    analytics?.track("export_results", {
       value: true,
     });
   };
 
   const handleSavePipeline = () => {
-    analytics?.track("Pipeline Saved", {
+    analytics?.track("pipeline_saved", {
       value: true,
     });
   };
