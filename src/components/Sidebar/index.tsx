@@ -6,15 +6,15 @@ import {
   AccordionContent,
   AccordionTrigger,
 } from "../ui/accordion";
-import { DatabaseCollection, Settings } from "@/types";
+// import { DatabaseCollection, Settings } from "";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Database, Folder, Moon, Sun } from "lucide-react";
 
 import { Switch } from "../ui/switch";
-import { settingsInitial } from "@/constants";
-import { useGoogleAnalytics } from "@/hooks/useGoogleAnalytics";
+import { DatabaseCollection, Settings } from "../../types";
+import { settingsInitial } from "../../constants";
 // import { CreateDatabase } from "../CreateDatabase";
 
 interface Props {
@@ -33,7 +33,6 @@ export const Sidebar = ({
   settings,
 }: Props) => {
   const [url, setUrl] = useState<string | undefined>(settingsInitial.url);
-  const { handleConnectToDb } = useGoogleAnalytics();
 
   const [selectedAccordion, setSelectedAccordion] = useState<
     string | undefined
@@ -47,7 +46,6 @@ export const Sidebar = ({
         command: "MongoDbUrl",
         url,
       });
-      handleConnectToDb();
     }
   }, [url]);
   useEffect(() => {

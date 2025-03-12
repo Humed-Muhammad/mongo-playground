@@ -26,7 +26,7 @@ export interface MongoSliceQuery {
 
 const initialState: MongoSliceQuery = {
   dbNamesAndCollections: JSON.parse(database ?? "[]"),
-  settings: JSON.parse(webViewSetting ?? "{}")?? settingsInitial,
+  settings: { ...settingsInitial, ...JSON.parse(webViewSetting ?? "{}") },
   pipelineStore: JSON.parse(localPipelineStore ?? "{}"),
   currentQuery: JSON.parse(currentQueryValue ?? "[]"),
   allPipelinesFiles: [],
@@ -47,13 +47,13 @@ export const counterSlice = createSlice({
       state.currentQuery = action.payload;
     },
     setSettings: (state, action: PayloadAction<Partial<Settings>>) => {
-      state.settings = {...state.settings, ...action.payload};
+      state.settings = { ...state.settings, ...action.payload };
     },
     setQueryResults: (state, action: PayloadAction<string>) => {
       state.queryResults = action.payload;
     },
     setPipelineStore: (state, action: PayloadAction<PipelineStoreType>) => {
-      state.pipelineStore = {...state.pipelineStore, ...action.payload};
+      state.pipelineStore = { ...state.pipelineStore, ...action.payload };
     },
     setDbNamesAndCollections: (
       state,
@@ -64,9 +64,12 @@ export const counterSlice = createSlice({
     setError: (state, action: PayloadAction<string | undefined>) => {
       state.error = action.payload;
     },
-    setAllPipelinesFiles: (state, action: PayloadAction<AllPipelinesType[]>) => {
+    setAllPipelinesFiles: (
+      state,
+      action: PayloadAction<AllPipelinesType[]>
+    ) => {
       state.allPipelinesFiles = action.payload;
-    }
+    },
   },
 });
 

@@ -11,7 +11,7 @@ export const themeTextColor = (settings: Partial<Settings>) =>
 export const settingsInitial: Settings = {
   collectionName: "test",
   dbName: "test",
-  query: "[]",
+  query: "[{ $match: {} }]",
   theme: "vs-dark",
   url: "mongodb://127.0.0.1:27017",
 };
